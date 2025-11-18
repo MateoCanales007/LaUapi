@@ -5,7 +5,8 @@ namespace App\Services;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Post;
-use App\Http\Controllers\Api\NotificationController;
+use App\Models\Comentario;
+use App\Http\Controllers\Api\NotificationController; // Importación necesaria
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -100,7 +101,7 @@ class NotificationService
     }
 
     /**
-     * Crear notificación de comentario
+     * Crear notificación de comentario (Nivel superior)
      */
     public function createCommentNotification(User $commenter, Post $post, $commentText = null)
     {
@@ -153,6 +154,67 @@ class NotificationService
             return $notification;
         } catch (\Exception $e) {
             Log::error('Error creating comment notification: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Crea una notificación en la base de datos y envía un Push Notification 
+     * al autor del comentario padre cuando se recibe una respuesta (Reply).
+     * @param User $sender Usuario que responde
+     * @param Comentario $parentComment Comentario al que se está respondiendo
+     * @param Comentario $newReply El nuevo comentario (la respuesta)
+     * @param Post $post La publicación original
+     */
+    public function createCommentReplyNotification(User $sender, Comentario $parentComment, Comentario $newReply, Post $post): ?Notification
+    {
+        try {
+            // 1. Determinar el destinatario (autor del comentario padre)
+            $recipient = $parentComment->user;
+
+            if (!$recipient || $recipient->id === $sender->id) {
+                return null;
+            }
+
+            $commentPreview = strlen($newReply->comentario) > 30
+                ? substr($newReply->comentario, 0, 30) . '...'
+                : $newReply->comentario;
+                
+            // 2. Crear notificación en la base de datos
+            $notification = Notification::create([
+                'user_id' => $recipient->id,
+                'from_user_id' => $sender->id,
+                'type' => 'reply_comment', // Nuevo tipo para diferenciar
+                'post_id' => $post->id,
+                'data' => [
+                    'sender_username' => $sender->username,
+                    'sender_name' => $sender->name,
+                    'sender_image' => $sender->imagen,
+                    'post_id' => (string) $post->id,
+                    'parent_comment_id' => (string) $parentComment->id, 
+                    'reply_id' => (string) $newReply->id,
+                    'comment_preview' => $commentPreview
+                ]
+            ]);
+
+            // 3. Enviar notificación push
+            $pushBody = "{$sender->name} respondió tu comentario: \"{$commentPreview}\"";
+            
+            NotificationController::sendPushNotification(
+                $recipient->id, // ID del destinatario
+                'Nueva Respuesta',
+                $pushBody,
+                [
+                    'type' => 'reply_comment', // Tipo para la app
+                    'post_id' => (string) $post->id,
+                    'user_id' => (string) $sender->id,
+                    'notification_id' => (string) $notification->id
+                ]
+            );
+
+            return $notification;
+        } catch (\Exception $e) {
+            Log::error('Error creating comment reply notification: ' . $e->getMessage());
             return null;
         }
     }
