@@ -11,94 +11,112 @@ use Carbon\Carbon;
 
 class PomodoroSessionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $totalCreated = 0;
-        $todayCreated = 0;
-
-        // Para cada usuario, generamos entre 5 y 15 sesiones completadas en los últimos 30 días
         $users = User::all();
+        $totalSessions = 0;
+        $todaySessionsCount = 0;
 
         foreach ($users as $user) {
-            $taskIds = $user->tasks()->pluck('id')->toArray();
-            $sessionsToCreate = rand(5, 15);
+            $tasks = $user->tasks;
 
-            for ($i = 0; $i < $sessionsToCreate; $i++) {
-                // Fecha aleatoria en los últimos 30 días, entre 6:00 y 22:59
-                $started = Carbon::now()->subDays(rand(0, 30))
-                    ->setTime(rand(6, 22), rand(0, 59), 0);
+            // ---------------------------------------------------------
+            // 1. HISTORIAL PASADO (Simular trabajo previo)
+            // ---------------------------------------------------------
+            foreach ($tasks as $task) {
+                // Decidimos al azar cuánto avanzó esta tarea en el pasado.
+                // rand(0, estimados) asegura que NUNCA nos pasemos del total (evita el 5/4).
+                $sessionsToGenerate = rand(0, $task->estimated_pomodoros);
 
-                $duration = rand(1200, 1800); // entre 20 y 30 minutos (en segundos)
-                $ended = (clone $started)->addSeconds($duration);
-
-                $taskId = null;
-                if (!empty($taskIds) && rand(0, 100) < 80) { // 80% de probabilidad de asociarlo a una tarea
-                    $taskId = $taskIds[array_rand($taskIds)];
+                for ($i = 0; $i < $sessionsToGenerate; $i++) {
+                    // Fechas aleatorias en los últimos 30 días
+                    $date = Carbon::now()->subDays(rand(1, 30))->setTime(rand(8, 20), rand(0, 59));
+                    
+                    $this->createSession($user, $task, $date);
+                    $totalSessions++;
                 }
-
-                PomodoroSession::create([
-                    'uuid_cliente' => (string) Str::uuid(),
-                    'user_id' => $user->id,
-                    'task_id' => $taskId,
-                    'started_at' => $started,
-                    'ended_at' => $ended,
-                    'duration_seconds' => $duration,
-                    'break_type' => (rand(0, 100) < 70) ? 'short' : 'none',
-                    'status' => 'completed',
-                    'synced_at' => now(),
-                ]);
-
-                // Si la sesión está asociada a una tarea, incrementar su contador
-                if ($taskId) {
-                    $task = Task::find($taskId);
-                    if ($task) {
-                        $task->incrementPomodoros();
-                    }
-                }
-
-                $totalCreated++;
             }
 
-            // Además generar algunas sesiones específicamente para HOY
-            $todaySessions = rand(0, 5); // entre 0 y 5 sesiones hoy por usuario
+            // ---------------------------------------------------------
+            // 2. SESIONES SUELTAS (Sin tarea asignada - Modo Libre)
+            // ---------------------------------------------------------
+            $looseSessions = rand(2, 6);
+            for ($i = 0; $i < $looseSessions; $i++) {
+                $date = Carbon::now()->subDays(rand(1, 30))->setTime(rand(8, 20), rand(0, 59));
+                $this->createSession($user, null, $date); // null task_id
+                $totalSessions++;
+            }
 
-            for ($j = 0; $j < $todaySessions; $j++) {
-                $startedToday = Carbon::today()->setTime(rand(6, 22), rand(0, 59), 0)->addMinutes(rand(0, 59));
-                $durationToday = rand(1200, 1800);
-                $endedToday = (clone $startedToday)->addSeconds($durationToday);
+            // ---------------------------------------------------------
+            // 3. SESIONES DE HOY (Para que el contador "Hoy" tenga datos)
+            // ---------------------------------------------------------
+            // 80% de probabilidad de que el usuario haya trabajado hoy
+            if (rand(0, 100) < 80) { 
+                $sessionsToday = rand(1, 6); // Entre 1 y 6 pomodoros hoy
+                
+                for ($i = 0; $i < $sessionsToday; $i++) {
+                    // Buscamos una tarea que NO esté terminada para avanzarla hoy
+                    $pendingTask = $user->tasks()
+                        ->whereColumn('completed_pomodoros', '<', 'estimated_pomodoros')
+                        ->where('status', '!=', 'completed')
+                        ->inRandomOrder()
+                        ->first();
 
-                $taskIdToday = null;
-                if (!empty($taskIds) && rand(0, 100) < 80) {
-                    $taskIdToday = $taskIds[array_rand($taskIds)];
+                    // Generar hora lógica de hoy (desde las 7 AM hasta ahora)
+                    $startHour = 7;
+                    $endHour = Carbon::now()->hour;
+                    // Si es muy temprano, forzamos al menos las 8am
+                    if ($endHour < $startHour) $endHour = $startHour + 1;
+
+                    $date = Carbon::today()->setTime(rand($startHour, $endHour), rand(0, 59));
+                    
+                    $this->createSession($user, $pendingTask, $date); 
+                    $totalSessions++;
+                    $todaySessionsCount++;
                 }
-
-                PomodoroSession::create([
-                    'uuid_cliente' => (string) Str::uuid(),
-                    'user_id' => $user->id,
-                    'task_id' => $taskIdToday,
-                    'started_at' => $startedToday,
-                    'ended_at' => $endedToday,
-                    'duration_seconds' => $durationToday,
-                    'break_type' => (rand(0, 100) < 70) ? 'short' : 'none',
-                    'status' => 'completed',
-                    'synced_at' => now(),
-                ]);
-
-                if ($taskIdToday) {
-                    $task = Task::find($taskIdToday);
-                    if ($task) {
-                        $task->incrementPomodoros();
-                    }
-                }
-
-                $totalCreated++;
-                $todayCreated++;
             }
         }
 
-        $this->command->info("✅ PomodoroSessionSeeder: creadas $totalCreated sesiones de pomodoro. De ellas $todayCreated son de hoy.");
+        $this->command->info("✅ Se han generado $totalSessions sesiones ($todaySessionsCount son de HOY).");
+    }
+
+    /**
+     * Crea la sesión y actualiza la lógica de la tarea
+     */
+    private function createSession($user, $task, $date)
+    {
+        $duration = 1500; // 25 min estándar
+
+        PomodoroSession::create([
+            'uuid_cliente' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'task_id' => $task ? $task->id : null,
+            'started_at' => $date,
+            'ended_at' => (clone $date)->addSeconds($duration),
+            'duration_seconds' => $duration,
+            'break_type' => rand(0, 1) ? 'short' : 'long',
+            'status' => 'completed',
+            'synced_at' => now(),
+        ]);
+
+        // Si la sesión pertenece a una tarea, actualizamos su estado y progreso
+        if ($task) {
+            $task->increment('completed_pomodoros');
+            $task->refresh(); // Recargamos para tener los valores nuevos
+
+            // Lógica de Estados:
+            if ($task->completed_pomodoros >= $task->estimated_pomodoros) {
+                // CASO 1: Meta alcanzada -> Estado 'completed'
+                $task->update([
+                    'status' => 'completed', 
+                    'completed_at' => $date
+                ]);
+            } elseif ($task->completed_pomodoros > 0) {
+                // CASO 2: Tiene avance (ej. 1/4) -> Estado 'in_progress'
+                // Esto soluciona que aparezcan como 'pendientes' teniendo avance.
+                $task->update(['status' => 'in_progress']);
+            }
+            // CASO 3: (Implícito) Si es 0, se queda como 'pending' (definido en TasksSeeder)
+        }
     }
 }
