@@ -59,6 +59,7 @@ class CarreraUniversidadSeeder extends Seeder
         $relaciones = Carrera::where('nombre', 'Licenciatura en Relaciones internacionales')->first();
         $cienciap = Carrera::where('nombre', 'Licenciatura en Ciencia Politica')->first();
         $medicina = Carrera::where('nombre', 'Medicina')->first();
+        $anestesiologia = Carrera::where('nombre', 'Licenciatura en Anestesiología e Inhaloterapia')->first();
         $odonto = Carrera::where('nombre', 'Doctorado en Cirugía Dental')->first();
         $farmacia = Carrera::where('nombre', 'Licenciatura en Quimica y Farmacia')->first();
         $tecfarmacia = Carrera::where('nombre', 'Tecnico en Farmacia Asistencial')->first();
@@ -206,7 +207,7 @@ class CarreraUniversidadSeeder extends Seeder
                 $geologia, $agronomica, $conta, $administracion, $mercadeo, $economia, 
                 $fisica, $geofisica, $licquimica, $biologia, $biologiem, $arquitectura, 
                 $civil, $electrica, $industrial, $sistemas, $mecanica, $alimentos, 
-                $quimica, $derecho, $relaciones, $cienciap, $medicina, $odonto, $farmacia, $tecfarmacia
+                $quimica, $derecho, $relaciones, $cienciap, $medicina, $odonto, $farmacia, $tecfarmacia, $anestesiologia
             ];
             $ues->carreras()->syncWithoutDetaching($this->extraerIds($carrerasUes));
         }
