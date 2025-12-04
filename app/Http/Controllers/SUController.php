@@ -7,18 +7,66 @@ use App\Models\su_ad;
 use App\Models\User;
 use App\Models\Banner;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+use Illuminate\Foundation\Validation\ValidatesRequests;
+
 class SUController extends Controller
-{
+{   
+    use ValidatesRequests;
+    public function login()
+    {
+      return view('su.login');   
+    }
+
+    public function storelau(Request $request)
+    {
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // 1️⃣ Verificar credenciales en superusuarios
+        if (Auth::guard('super')->attempt($request->only('email', 'password'), $request->remember)) {
+            return redirect()->route('su.dash');
+        }
+
+        // 3️⃣ Si nada coincide → error
+        return back()
+            ->with('status', 'Las credenciales no coinciden')
+            ->withInput($request->only('email'));
+    }
+
+    public function storeus()
+    {
+        if (Auth::guard('super')->check()) {
+            Auth::guard('super')->logout(); 
+        }
+
+        return redirect()->route('su.us.laulogin'); 
+    }
+
     public function dashboard()
     {
-
         $users = \App\Models\User::latest()->get();
         return view('su.dashboard', [
             'users' => $users,
         ]);
     }
+
+    public function universidad()
+    {
+        return view('su.universidad');
+    }
+
+
+    public function carrera()
+    {
+        return view('su.carreras');
+    }
+
+
 
     public function store(Request $request)
     {

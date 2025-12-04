@@ -296,15 +296,22 @@ Route::get('/itunes/more', [iTunesApiController::class, 'getMoreResults'])->name
  * 
  */
 // creador de usuario
-Route::post('/crear-usuario', [SUController::class, 'store'])->name('usuario.store');
+// Route::post('/crear-usuario', [SUController::class, 'store'])->name('usuario.store');
+Route::get('/us/su/lau/login', [SUController::class, 'login'])->name('su.us.laulogin');
 
-Route::post('/logoutus', [LogoutController::class, 'storeus'])->name('logoutus');
+Route::post('/us/su/lau/session', [SUController::class, 'storelau'])->name('su.us.lausess');
+
+Route::post('/logoutus', [SUController::class, 'storeus'])->name('logoutus');
 
 Route::middleware(['auth:super'])
-    ->prefix('us')
+    ->prefix('us/su/lau')
     ->as('su.')
     ->group(function () {
         Route::get('/dashboard', [SUController::class, 'dashboard'])->name('dash');
+
+        Route::get('/universidades', [SUController::class, 'universidad'])->name('uni');
+
+        Route::get('/carreras', [SUController::class, 'carrera'])->name('uni.ca');
 
         Route::get('/info/{user:username}', [SUController::class, 'info'])->name('info');
         Route::post('/info/{user:username}/insignia', [SUController::class, 'addInsignia'])->name('add.insig');
