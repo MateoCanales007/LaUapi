@@ -106,6 +106,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/register-device', [NotificationController::class, 'registerDevice']); // Registrar token FCM
     Route::post('/notifications/unregister-device', [NotificationController::class, 'unregisterDevice']); // Desregistrar token FCM
 
+    // ========== CHAT ROUTES ==========
+    Route::get('/chat/contacts', [App\Http\Controllers\Api\ChatApiController::class, 'getContactsJSON']);
+    Route::post('/chat/messages', [App\Http\Controllers\Api\ChatApiController::class, 'fetchMessagesJSON']);
+    Route::post('/chat/send', [App\Http\Controllers\Api\ChatApiController::class, 'sendMessageJSON']);
+    Route::post('/chat/auth', [App\Http\Controllers\Api\ChatApiController::class, 'pusherAuth']);
+    Route::post('/chat/typing', [App\Http\Controllers\Api\ChatApiController::class, 'typing']);
+
     // ========== TODO & POMODORO ROUTES ==========
 
     // Tareas (Tasks)
