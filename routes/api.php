@@ -108,10 +108,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ========== CHAT ROUTES ==========
     Route::get('/chat/contacts', [App\Http\Controllers\Api\ChatApiController::class, 'getContactsJSON']);
+    Route::get('/chat/favorites', [App\Http\Controllers\Api\ChatApiController::class, 'getFavoritesJSON']);
     Route::post('/chat/messages', [App\Http\Controllers\Api\ChatApiController::class, 'fetchMessagesJSON']);
     Route::post('/chat/send', [App\Http\Controllers\Api\ChatApiController::class, 'sendMessageJSON']);
-    Route::post('/chat/auth', [App\Http\Controllers\Api\ChatApiController::class, 'pusherAuth']);
     Route::post('/chat/typing', [App\Http\Controllers\Api\ChatApiController::class, 'typing']);
+    Route::post('/chat/auth', [App\Http\Controllers\Api\ChatApiController::class, 'pusherAuth']);
+    Route::post('/chat/favorite', [App\Http\Controllers\Api\ChatApiController::class, 'toggleFavorite']);
+    Route::post('/chat/checkFavorite', [App\Http\Controllers\Api\ChatApiController::class, 'checkFavorite']);
+    Route::post('/chat/shared', [App\Http\Controllers\Api\ChatApiController::class, 'getSharedPhotos']);
+    Route::post('/chat/makeSeen', [App\Http\Controllers\Api\ChatApiController::class, 'makeSeen']);
 
     // ========== TODO & POMODORO ROUTES ==========
 
