@@ -302,14 +302,15 @@ Route::middleware(['auth:super'])
     ->prefix('us/su/lau')
     ->as('su.')
     ->group(function () {
-        Route::get('/buscar-usuarios', [SUController::class, 'buscarUsuarios'])->name('user.buscar');
-
+        
+        // Vistas Generales
         Route::get('/dashboard', [SUController::class, 'dashboard'])->name('dash');
         Route::get('/universidades', [SUController::class, 'universidad'])->name('uni');
         Route::get('/carreras', [SUController::class, 'carrera'])->name('uni.ca');
 
-        Route::get('/usuarios', [SUController::class, 'userperfil'])->name('usu');
-
+        // Gestión de Usuarios SU
+        Route::get('/usuarios', [SUController::class, 'userperfil'])->name('usuarios');
+        Route::get('/buscar-usuarios', [SUController::class, 'buscarUsuarios'])->name('user.buscar');
         Route::get('/info/{user:username}', [SUController::class, 'info'])->name('info');
 
         // Gestión de Insignias
@@ -322,10 +323,9 @@ Route::middleware(['auth:super'])
         // Gestión de Anuncios (Banners)
         Route::get('/ads/create', [SUController::class, 'ads'])->name('ads');
         Route::post('/ads/create', [SUController::class, 'create'])->name('ads.create');
-
+        Route::put('/ads/update/{id}', [SUController::class, 'update'])->name('ads.update');
         Route::delete('/ads/{id}', [SUController::class, 'delete'])->name('ads.delete');
-
-        Route::get('/insig/create', [SUController::class, 'insig'])->name('insig');
+        
     });
 
 

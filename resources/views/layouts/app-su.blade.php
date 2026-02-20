@@ -14,6 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @stack('styles')
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
     <title>Lau -- @yield('title', 'Panel')</title>
     @vite(['resources/js/script-lau.js'])
 
@@ -123,75 +124,6 @@
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <!-- Alertas -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
-        {{-- Alerta de exito --}}
-        @if (session('success'))
-            <div id="toast-success" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-green-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
-                <div class="flex-shrink-0">
-                    <div class="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-500">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-                <div class="ml-3 w-0 flex-1 pt-0.5">
-                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Éxito!</p>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('success') }}</p>
-                </div>
-                <div class="ml-4 flex-shrink-0 flex">
-                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        @endif
-        {{-- Alerta de validación --}}
-        @if ($errors->any())
-            <div class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-yellow-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
-                <div class="flex-shrink-0">
-                    <div class="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                </div>
-                <div class="ml-3 w-0 flex-1 pt-0.5">
-                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Aviso!</p>
-                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        <ul class="list-disc pl-4">
-                            {{-- Listamos todos los errores de validación --}}
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                <div class="ml-4 flex-shrink-0 flex">
-                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        @endif
-        {{-- Alerta de error --}}
-        @if (session('error'))
-            <div id="toast-error" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-red-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
-                <div class="flex-shrink-0">
-                    <div class="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                </div>
-                <div class="ml-3 w-0 flex-1 pt-0.5">
-                    <p class="text-sm font-bold text-gray-900 dark:text-white">Error</p>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('error') }}</p>
-                </div>
-                <div class="ml-4 flex-shrink-0 flex">
-                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-    </div>
-    <!-- fin alerta -->
 
     <!-- Alertas -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
@@ -297,13 +229,15 @@
                  ">
                     <i class="fas fa-medal w-6"></i> <span>Insignias</span>
                 </a>
-                <a href="{{ route('su.ads')}}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                
+                {{-- Rutas de Anuncios y Usuarios ya conectadas --}}
+                <a href="{{ route('su.ads') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-bullhorn w-6"></i> <span>Anuncios</span>
                 </a>
-                <a href="{{ route('su.usu')}}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.usu')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                <a href="{{ route('su.usuarios') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.usuarios') || Route::is('su.info')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-users w-6"></i> <span>Usuarios</span>
                 </a>
@@ -348,27 +282,6 @@
         @yield('view-contenido') 
             
     </div>
-</body>
-
-    <style>
-        /* Animación de Entrada */
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slide-in-right {
-            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        /* Animación de Salida (Nueva) */
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        .animate-slide-out-right {
-            animation: slideOutRight 0.4s ease-in forwards;
-        }
-    </style>
 
     <script>
         // Función para cerrar una alerta específica
@@ -400,5 +313,25 @@
             });
         });
     </script>
+
+    <style>
+        /* Animación de Entrada */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Animación de Salida (Nueva) */
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .animate-slide-out-right {
+            animation: slideOutRight 0.4s ease-in forwards;
+        }
+    </style>
 </body>
 </html>

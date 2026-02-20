@@ -72,30 +72,39 @@ class SUController extends Controller
         return view('su.carreras');
     }
 
+    // --- NUEVAS FUNCIONES DE USUARIOS ---
+    
     public function userperfil(User $user)
     {
+        $insignia = Insignia::latest()->get();
         $authUser = Auth::user();
         $users = \App\Models\User::with(['universidad', 'carrera'])
                 ->withCount(['posts', 'followers'])
                 ->latest()
                 ->get();
+
+        $totalUsers = $users->count();
         
         return view('su.usuarios', [
             'users' => $users,
             'authUser' => $authUser,
+            'totalUsers' => $totalUsers,
+            'insignia' => $insignia,
         ]);
     }
 
     public function buscarUsuarios(Request $request)
     {
-        $query = $request->get('buscar');
-        $users = User::where('name', 'like', "%{$query}%")
-                     ->orWhere('username', 'like', "%{$query}%")
-                     ->get(); // O usa paginate() si prefieres
+        $query = $request->input('buscar');
+        $users = User::when($query, function($q) use ($query) {
+            $q->where('name', 'like', "%{$query}%")
+              ->orWhere('username', 'like', "%{$query}%");
+        })->get();
 
-        // IMPORTANTE: Retorna el partial que creamos en el paso 2
-        return view('components.listar-perfiles-su', compact('users'))->render();
+        return view('components.listar-perfiles-su', compact('users'));
     }
+
+    // ------------------------------------
 
     public function store(Request $request)
     {
@@ -233,15 +242,53 @@ class SUController extends Controller
         return redirect()->route('su.ads')->with('success', 'Banner creado correctamente');
     }
 
+    /**
+     * Actualiza un banner existente en la base de datos.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id  El ID del banner que viene de la URL
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        // 1. Buscar el banner existente
+        $banner = Banner::findOrFail($id);
+
+        // 2. Validar los datos recibidos
+        $validatedData = $request->validate([
+            'title'       => ['required', 'string', 'max:255'],
+            'content'     => ['required', 'string'],
+            // Usamos la constante del modelo para asegurar que el tipo sea válido (info, feature, update, warning)
+            'type'        => ['required', Rule::in(Banner::getAvailableTypes())],
+            'image_url'   => ['nullable', 'url', 'max:500'],
+            'action_text' => ['nullable', 'string', 'max:50'],
+            'action_url'  => ['nullable', 'string', 'max:500'],
+            'is_active'   => ['required', 'boolean'],
+            'start_date'  => ['nullable', 'date'],
+            'end_date'    => ['nullable', 'date', 'after_or_equal:start_date'],
+        ], [
+            'type.in' => 'El tipo de anuncio seleccionado no es válido.',
+            'end_date.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+        ]);
+
+        $banner->update($validatedData);
+
+        return redirect()
+            ->route('su.ads')
+            ->with('success', '¡El anuncio se ha actualizado correctamente!');
+    }
+
     public function delete($id) 
     {
-        $banner = Banner::findOrFail($id); // O el modelo que uses
+        $banner = Banner::findOrFail($id);
         $banner->delete();
 
         return back()->with('success', 'Banner eliminado');
     }
 
-    public function insig()
+    // ------------------------------------
+
+    public function insig() 
     {
         $insignias = Insignia::withCount('users') 
                         ->latest()
