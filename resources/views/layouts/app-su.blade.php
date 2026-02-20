@@ -12,9 +12,11 @@
         }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+    @stack('styles')
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-    <title>Lau - @yield('title', 'Panel')</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <title>Lau -- @yield('title', 'Panel')</title>
+    @vite(['resources/js/script-lau.js'])
 
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -32,16 +34,171 @@
         body { font-family: 'Inter', sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px; /* Ancho delgado y elegante */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent; /* Fondo transparente */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* gris claro (slate-300) */
+            border-radius: 20px;       /* bordes redondeados */
+        }
+
+        /* Estilos para Modo Oscuro (si tu HTML tiene class="dark") */
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #4b5563; /* gris oscuro (gray-600) */
+        }
+
+        /* Hover: cuando pasas el mouse sobre la barra */
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #6366f1; /* indigo-500 (Tu color de acento) */
+        }
+
+        /* Estilos para Firefox */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .dark .custom-scrollbar {
+            scrollbar-color: #4b5563 transparent;
+        }
+        
+        .preview-bg {
+            background-color: #f3f4f6;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .dark .preview-bg {
+            background-color: #111827;
+            background-image: radial-gradient(#374151 1px, transparent 1px);
+        }
+        
+        /* Animaciones de transición */
+        .view-transition { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 1. MODO CLARO: Fondo Blanco y Texto Gris Oscuro */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px white inset !important; /* Tapa el fondo amarillo con blanco */
+            -webkit-text-fill-color: #111827 !important; /* Color del texto (gray-900) */
+            transition: background-color 5000s ease-in-out 0s; /* Evita parpadeos */
+        }
+
+        /* 2. MODO OSCURO: Fondo Gris Oscuro y Texto Blanco */
+        .dark input:-webkit-autofill,
+        .dark input:-webkit-autofill:hover, 
+        .dark input:-webkit-autofill:focus, 
+        .dark input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #1f2937 inset !important; /* Tapa con gris oscuro (gray-800) */
+            -webkit-text-fill-color: #ffffff !important; /* Texto blanco */
+            caret-color: white; /* Color del cursor parpadeante */
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Animación de Salida (Nueva) */
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .animate-slide-out-right {
+            animation: slideOutRight 0.4s ease-in forwards;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
 
+    <!-- Alertas -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+        {{-- Alerta de exito --}}
+        @if (session('success'))
+            <div id="toast-success" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-green-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-500">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Éxito!</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('success') }}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+        {{-- Alerta de validación --}}
+        @if ($errors->any())
+            <div class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-yellow-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Aviso!</p>
+                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <ul class="list-disc pl-4">
+                            {{-- Listamos todos los errores de validación --}}
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+        {{-- Alerta de error --}}
+        @if (session('error'))
+            <div id="toast-error" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-red-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">Error</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('error') }}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+
+    </div>
+    <!-- fin alerta -->
+
     <div class="flex h-screen overflow-hidden relative">
 
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-indigo-900 text-white flex flex-col shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-auto">
             <div class="h-20 flex items-center justify-center border-b border-indigo-800 px-4 relative">
-
                 <img src="https://res.cloudinary.com/dtmemrt1j/image/upload/v1764889353/Frame_1_3_hz7gdd.png" 
                      alt="Lau Logo" 
                      class="h-14 w-auto object-contain transition-transform hover:scale-105">
@@ -49,31 +206,39 @@
 
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
                 <a href="{{ route('su.dash') }}" class="flex items-center px-4 py-3 rounded-lg 
-                @if(Route::is('su.dash')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                @if(Route::is('su.dash')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                 ">
                     <i class="fas fa-chart-line w-6"></i> <span class="font-medium">Dashboard</span>
                 </a>
                 
                 <p class="px-4 text-xs font-semibold text-indigo-400 uppercase mt-4">Académico</p>
                 <a href="{{ route('su.uni') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.uni')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 @if(Route::is('su.uni')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-university w-6"></i> <span>Universidades</span>
                 </a>
                 <a href="{{ route('su.uni.ca') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.uni.ca')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 @if(Route::is('su.uni.ca')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-book w-6"></i> <span>Carreras</span>
                 </a>
 
                 <p class="px-4 text-xs font-semibold text-indigo-400 uppercase mt-4">Comunidad</p>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                <a href="{{ route('su.insig')}}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.insig')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-medal w-6"></i> <span>Insignias</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                
+                {{-- Rutas de Anuncios y Usuarios ya conectadas --}}
+                <a href="{{ route('su.ads') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-bullhorn w-6"></i> <span>Anuncios</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                <a href="{{ route('su.usuarios') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.usuarios') || Route::is('su.info')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-users w-6"></i> <span>Usuarios</span>
                 </a>
 
@@ -94,10 +259,10 @@
             <div class="p-4 border-t border-indigo-800 flex items-center bg-indigo-900 relative group cursor-pointer transition-colors hover:bg-indigo-800">
                 
                 <div class="flex items-center flex-1 min-w-0">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random" class="h-10 w-10 rounded-full shrink-0">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::guard('super')->user()->name ?? 'Admin') }}&background=random" class="h-10 w-10 rounded-full shrink-0">
                     <div class="ml-3 overflow-hidden">
-                        <p class="text-sm font-medium text-white truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-indigo-300 truncate">{{ Auth::user()->email }}</p>
+                        <p class="text-sm font-medium text-white truncate">{{ Auth::guard('super')->user()->name ?? 'Administrador' }}</p>
+                        <p class="text-xs text-indigo-300 truncate">{{ Auth::guard('super')->user()->email ?? 'admin@lau.app' }}</p>
                     </div>
                 </div>
 
@@ -119,64 +284,54 @@
     </div>
 
     <script>
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
-        
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
-        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-
-        function updateThemeUI(isDark) {
-            if (isDark) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = "Modo Claro";
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = "Modo Oscuro";
-            }
-        }
-
-        if (html.classList.contains('dark')) {
-            updateThemeUI(true);
-        } else {
-            updateThemeUI(false);
-        }
-
-        // Evento Click
-        themeToggle.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            const isDark = html.classList.contains('dark');
+        // Función para cerrar una alerta específica
+        function closeToast(element) {
+            if (!element) return;
             
-            // Guardamos la preferencia en LocalStorage
-            if (isDark) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
+            // 1. Agregar clase de animación de salida
+            element.classList.remove('animate-slide-in-right'); // Quitamos la de entrada por si acaso
+            element.classList.add('animate-slide-out-right');   // Agregamos la de salida
 
-            updateThemeUI(isDark);
+            // 2. Esperar a que termine la animación (400ms) y eliminar del HTML
+            setTimeout(() => {
+                if (element && element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            }, 400); 
+        }
+
+        // Inicialización Automática al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            // Seleccionamos todas las alertas presentes
+            const toasts = document.querySelectorAll('.toast-alert');
+
+            toasts.forEach(toast => {
+                // Configuramos el temporizador de 10 segundos (10000 ms) para cada una
+                setTimeout(() => {
+                    closeToast(toast);
+                }, 10000);
+            });
         });
-
-
-        // --- FUNCIONES DE SIDEBAR (MÓVIL) ---
-        function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            sidebarBackdrop.classList.remove('hidden');
-        }
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            sidebarBackdrop.classList.add('hidden');
-        }
-
-        openSidebarButton.addEventListener('click', openSidebar);
-        sidebarBackdrop.addEventListener('click', closeSidebar);
-
     </script>
-</body>
 
+    <style>
+        /* Animación de Entrada */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Animación de Salida (Nueva) */
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .animate-slide-out-right {
+            animation: slideOutRight 0.4s ease-in forwards;
+        }
+    </style>
+</body>
 </html>
