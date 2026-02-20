@@ -123,6 +123,75 @@
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <!-- Alertas -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+        {{-- Alerta de exito --}}
+        @if (session('success'))
+            <div id="toast-success" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-green-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-500">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Éxito!</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('success') }}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+        {{-- Alerta de validación --}}
+        @if ($errors->any())
+            <div class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-yellow-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">¡Aviso!</p>
+                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <ul class="list-disc pl-4">
+                            {{-- Listamos todos los errores de validación --}}
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+        {{-- Alerta de error --}}
+        @if (session('error'))
+            <div id="toast-error" class="toast-alert pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-red-500 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 flex items-start p-4 animate-slide-in-right">
+                <div class="flex-shrink-0">
+                    <div class="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="ml-3 w-0 flex-1 pt-0.5">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">Error</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ session('error') }}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="closeToast(this.closest('.toast-alert'))" class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+
+    </div>
+    <!-- fin alerta -->
 
     <!-- Alertas -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
@@ -228,15 +297,13 @@
                  ">
                     <i class="fas fa-medal w-6"></i> <span>Insignias</span>
                 </a>
-                
-                {{-- Rutas de Anuncios y Usuarios ya conectadas --}}
-                <a href="{{ route('su.ads') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                <a href="{{ route('su.ads')}}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-bullhorn w-6"></i> <span>Anuncios</span>
                 </a>
-                <a href="{{ route('su.usuarios') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.usuarios') || Route::is('su.info')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                <a href="{{ route('su.usu')}}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.usu')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-users w-6"></i> <span>Usuarios</span>
                 </a>
@@ -281,63 +348,7 @@
         @yield('view-contenido') 
             
     </div>
-
-    <script>
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
-        
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarButton = document.getElementById('open-sidebar-button');
-        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-
-        function updateThemeUI(isDark) {
-            if (isDark) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = "Modo Claro";
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = "Modo Oscuro";
-            }
-        }
-
-        if (html.classList.contains('dark')) {
-            updateThemeUI(true);
-        } else {
-            updateThemeUI(false);
-        }
-
-        // Evento Click Tema
-        themeToggle.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            const isDark = html.classList.contains('dark');
-            
-            if (isDark) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-
-            updateThemeUI(isDark);
-        });
-
-        // --- FUNCIONES DE SIDEBAR (MÓVIL) ---
-        function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            sidebarBackdrop.classList.remove('hidden');
-        }
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            sidebarBackdrop.classList.add('hidden');
-        }
-
-        if(openSidebarButton) openSidebarButton.addEventListener('click', openSidebar);
-        if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
-
-    </script>
+</body>
 
     <style>
         /* Animación de Entrada */
