@@ -239,4 +239,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(PomodoroSession::class);
     }
+
+
+    /**
+     * Relación con Insignia_user
+     * Un usuario tiene muchas insignias
+     */
+    public function insignias()
+    {
+        return $this->belongsToMany(Insignia::class)->withTimestamps();
+    }
 }

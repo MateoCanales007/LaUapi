@@ -14,7 +14,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <title>Lau - @yield('title', 'Panel')</title>
+    @vite(['resources/js/script-lau.js'])
 
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -26,7 +31,6 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @livewireStyles()
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -41,7 +45,6 @@
 
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-indigo-900 text-white flex flex-col shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-auto">
             <div class="h-20 flex items-center justify-center border-b border-indigo-800 px-4 relative">
-
                 <img src="https://res.cloudinary.com/dtmemrt1j/image/upload/v1764889353/Frame_1_3_hz7gdd.png" 
                      alt="Lau Logo" 
                      class="h-14 w-auto object-contain transition-transform hover:scale-105">
@@ -49,31 +52,39 @@
 
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
                 <a href="{{ route('su.dash') }}" class="flex items-center px-4 py-3 rounded-lg 
-                @if(Route::is('su.dash')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                @if(Route::is('su.dash')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                 ">
                     <i class="fas fa-chart-line w-6"></i> <span class="font-medium">Dashboard</span>
                 </a>
                 
                 <p class="px-4 text-xs font-semibold text-indigo-400 uppercase mt-4">Académico</p>
                 <a href="{{ route('su.uni') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.uni')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 @if(Route::is('su.uni')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-university w-6"></i> <span>Universidades</span>
                 </a>
                 <a href="{{ route('su.uni.ca') }}" class="flex items-center px-4 py-2 rounded-lg 
-                 @if(Route::is('su.uni.ca')) bg-indigo-800 text-white @else py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 @if(Route::is('su.uni.ca')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
                  ">
                     <i class="fas fa-book w-6"></i> <span>Carreras</span>
                 </a>
 
                 <p class="px-4 text-xs font-semibold text-indigo-400 uppercase mt-4">Comunidad</p>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                <a href="{{ route('su.insig')}}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.insig')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-medal w-6"></i> <span>Insignias</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                
+                {{-- Rutas de Anuncios y Usuarios ya conectadas --}}
+                <a href="{{ route('su.ads') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.ads')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-bullhorn w-6"></i> <span>Anuncios</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-800 hover:text-white rounded-lg transition">
+                <a href="{{ route('su.usuarios') }}" class="flex items-center px-4 py-2 rounded-lg 
+                 @if(Route::is('su.usuarios') || Route::is('su.info')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
                     <i class="fas fa-users w-6"></i> <span>Usuarios</span>
                 </a>
 
@@ -94,10 +105,10 @@
             <div class="p-4 border-t border-indigo-800 flex items-center bg-indigo-900 relative group cursor-pointer transition-colors hover:bg-indigo-800">
                 
                 <div class="flex items-center flex-1 min-w-0">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random" class="h-10 w-10 rounded-full shrink-0">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::guard('super')->user()->name ?? 'Admin') }}&background=random" class="h-10 w-10 rounded-full shrink-0">
                     <div class="ml-3 overflow-hidden">
-                        <p class="text-sm font-medium text-white truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-indigo-300 truncate">{{ Auth::user()->email }}</p>
+                        <p class="text-sm font-medium text-white truncate">{{ Auth::guard('super')->user()->name ?? 'Administrador' }}</p>
+                        <p class="text-xs text-indigo-300 truncate">{{ Auth::guard('super')->user()->email ?? 'admin@lau.app' }}</p>
                     </div>
                 </div>
 
@@ -126,7 +137,6 @@
         
         const sidebar = document.getElementById('sidebar');
         const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
         const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 
         function updateThemeUI(isDark) {
@@ -147,12 +157,11 @@
             updateThemeUI(false);
         }
 
-        // Evento Click
+        // Evento Click Tema
         themeToggle.addEventListener('click', () => {
             html.classList.toggle('dark');
             const isDark = html.classList.contains('dark');
             
-            // Guardamos la preferencia en LocalStorage
             if (isDark) {
                 localStorage.setItem('theme', 'dark');
             } else {
@@ -161,7 +170,6 @@
 
             updateThemeUI(isDark);
         });
-
 
         // --- FUNCIONES DE SIDEBAR (MÓVIL) ---
         function openSidebar() {
@@ -173,10 +181,9 @@
             sidebarBackdrop.classList.add('hidden');
         }
 
-        openSidebarButton.addEventListener('click', openSidebar);
-        sidebarBackdrop.addEventListener('click', closeSidebar);
+        if(openSidebarButton) openSidebarButton.addEventListener('click', openSidebar);
+        if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
 
     </script>
 </body>
-
 </html>

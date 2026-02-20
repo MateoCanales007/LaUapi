@@ -1,5 +1,3 @@
-
-
 <?php
 
 use App\Models\Comentario;
@@ -103,7 +101,7 @@ Route::patch('/social-links/{id}/move-up', [App\Http\Controllers\SocialLinksCont
 Route::patch('/social-links/{id}/move-down', [App\Http\Controllers\SocialLinksController::class, 'moveDown'])->name('social-links.move-down')->middleware('auth');
 
 /**
- * BÚSQUEDA DE USUARIOS
+ * BÚSQUEDA DE USUARIOS (PÚBLICA)
  * Sistema de búsqueda para encontrar otros usuarios de la plataforma
  */
 Route::get('/buscar-usuarios', [UserController::class, 'buscar'])->name('usuarios.buscar');
@@ -181,7 +179,6 @@ Route::get('/posts/{post}/likes', [PostController::class, 'getLikes'])->name('po
  * Permite comentar en las publicaciones de otros usuarios
  */
 Route::post('/{user:username}/posts/{post}', [ComentarioController::class, 'store'])->name('comentarios.store')->middleware('auth');
-//Route::post('/posts/{post}/comments', [ComentarioController::class, 'store'])->name('comentarios.store')->middleware('auth');
 
 // ============================================================================
 // GESTIÓN DE IMÁGENES
@@ -290,40 +287,45 @@ Route::get('/itunes/genre', [iTunesApiController::class, 'searchByGenre'])->name
 Route::get('/itunes/popular', [iTunesApiController::class, 'getPopular'])->name('itunes.popular');
 Route::get('/itunes/more', [iTunesApiController::class, 'getMoreResults'])->name('itunes.more');
 
-/**
- * 
- * SU
- * 
- */
-// creador de usuario
-// Route::post('/crear-usuario', [SUController::class, 'store'])->name('usuario.store');
+
+// ============================================================================
+// SUPER USUARIO (SU) - PANEL DE ADMINISTRACIÓN
+// ============================================================================
+
+// Autenticación SU
 Route::get('/us/su/lau/login', [SUController::class, 'login'])->name('su.us.laulogin');
-
 Route::post('/us/su/lau/session', [SUController::class, 'storelau'])->name('su.us.lausess');
-
 Route::post('/logoutus', [SUController::class, 'storeus'])->name('logoutus');
 
+// Grupo protegido por Middleware de SU
 Route::middleware(['auth:super'])
     ->prefix('us/su/lau')
     ->as('su.')
     ->group(function () {
+        
+        // Vistas Generales
         Route::get('/dashboard', [SUController::class, 'dashboard'])->name('dash');
-
         Route::get('/universidades', [SUController::class, 'universidad'])->name('uni');
-
         Route::get('/carreras', [SUController::class, 'carrera'])->name('uni.ca');
 
+        // Gestión de Usuarios SU
+        Route::get('/usuarios', [SUController::class, 'userperfil'])->name('usuarios');
+        Route::get('/buscar-usuarios', [SUController::class, 'buscarUsuarios'])->name('user.buscar');
         Route::get('/info/{user:username}', [SUController::class, 'info'])->name('info');
-        Route::post('/info/{user:username}/insignia', [SUController::class, 'addInsignia'])->name('add.insig');
+
+        // Gestión de Insignias
+        Route::get('/insignias', [SUController::class, 'insig'])->name('insig');
+        Route::post('/insignias/create', [SUController::class, 'storeinsig'])->name('insig.create');
+        Route::post('/users/insignia', [SUController::class, 'addInsignia'])->name('add.insig');
         Route::put('/info/{user:username}/insignia', [SUController::class, 'editInsignia'])->name('update.insig');
         Route::delete('/info/{user:username}/insignia', [SUController::class, 'deleteInsignia'])->name('delete.insig');
 
+        // Gestión de Anuncios (Banners)
         Route::get('/ads/create', [SUController::class, 'ads'])->name('ads');
         Route::post('/ads/create', [SUController::class, 'create'])->name('ads.create');
-
-        Route::get('/insig/create', [SUController::class, 'insig'])->name('insig');
-
-        Route::get('/buscar-userus', [UserController::class, 'buscarUsuarios'])->name('user.buscar');
+        Route::put('/ads/update/{id}', [SUController::class, 'update'])->name('ads.update');
+        Route::delete('/ads/{id}', [SUController::class, 'delete'])->name('ads.delete');
+        
     });
 
 

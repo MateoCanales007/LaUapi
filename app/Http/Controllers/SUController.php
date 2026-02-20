@@ -6,15 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\su_ad;
 use App\Models\User;
 use App\Models\Banner;
+use App\Models\Insignia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class SUController extends Controller
 {   
     use ValidatesRequests;
+
     public function login()
     {
       return view('su.login');   
@@ -50,8 +52,13 @@ class SUController extends Controller
     public function dashboard()
     {
         $users = \App\Models\User::latest()->get();
+        $totalUsers = $users->count();
+        $activeCount = Banner::where('is_active', true)->count();
+        
         return view('su.dashboard', [
             'users' => $users,
+            'totalUsers' => $totalUsers,
+            'activeCount' => $activeCount,
         ]);
     }
 
@@ -60,13 +67,44 @@ class SUController extends Controller
         return view('su.universidad');
     }
 
-
     public function carrera()
     {
         return view('su.carreras');
     }
 
+    // --- NUEVAS FUNCIONES DE USUARIOS ---
+    
+    public function userperfil(User $user)
+    {
+        $insignia = Insignia::latest()->get();
+        $authUser = Auth::user();
+        $users = \App\Models\User::with(['universidad', 'carrera'])
+                ->withCount(['posts', 'followers'])
+                ->latest()
+                ->get();
 
+        $totalUsers = $users->count();
+        
+        return view('su.usuarios', [
+            'users' => $users,
+            'authUser' => $authUser,
+            'totalUsers' => $totalUsers,
+            'insignia' => $insignia,
+        ]);
+    }
+
+    public function buscarUsuarios(Request $request)
+    {
+        $query = $request->input('buscar');
+        $users = User::when($query, function($q) use ($query) {
+            $q->where('name', 'like', "%{$query}%")
+              ->orWhere('username', 'like', "%{$query}%");
+        })->get();
+
+        return view('components.listar-perfiles-su', compact('users'));
+    }
+
+    // ------------------------------------
 
     public function store(Request $request)
     {
@@ -98,20 +136,25 @@ class SUController extends Controller
     }
 
     // Agregar insignia al usuario
-    public function addInsignia(Request $request, User $user)
+    public function addInsignia(Request $request)
     {
-        // Validar
+        // 1. Validar
         $request->validate([
-            'type' => 'required|in:Colaborador,Comunidad'
+            'user_id' => 'required|exists:users,id',
+            'badges'  => 'required', // Viene como string JSON: "[1, 5]"
         ]);
 
-        // Actualizar campo insignia
-        $user->update([
-            'insignia' => $request->type
-        ]);
+        // 2. Buscar Usuario
+        $user = User::find($request->user_id);
 
-        return redirect()->route('su.info', $user->username)
-            ->with('success', 'Insignia agregada correctamente');
+        // 3. Decodificar el JSON a un array de IDs (Ej: [1, 5])
+        $badgeIds = json_decode($request->badges);
+
+        // 4. LA MAGIA: sync()
+        // Esto crea tantas filas en 'insignia_user' como IDs haya en el array.
+        $user->insignias()->sync($badgeIds);
+
+        return back()->with('success', 'Insignias actualizadas correctamente.');
     }
 
     // Editar insignia del usuario
@@ -149,9 +192,12 @@ class SUController extends Controller
         return back()->with('success', 'Insignia eliminada correctamente.');
     }
 
+    // --- FUNCIONES DE ANUNCIOS (BANNERS) ---
+
     public function ads()
     {
-        return view('su.anuncio');
+        $banners = Banner::latest()->get(); // Asegúrate de enviarlos a la vista
+        return view('su.anuncio', compact('banners'));
     }
 
     public function create(Request $request)
@@ -160,7 +206,7 @@ class SUController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'type' => 'required|in:feature,update,info',
+            'type' => 'required|in:feature,update,info,warning', // Añadido 'warning' por si acaso
             'image_url' => 'nullable|string|max:255',
             'file' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:20480', // 20MB
             'action_text' => 'nullable|string|max:255',
@@ -195,8 +241,81 @@ class SUController extends Controller
         return redirect()->route('su.ads')->with('success', 'Banner creado correctamente');
     }
 
-    public function insig()
+    /**
+     * Actualiza un banner existente en la base de datos.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id  El ID del banner que viene de la URL
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
     {
-        return view('su.insignia');
+        // 1. Buscar el banner existente
+        $banner = Banner::findOrFail($id);
+
+        // 2. Validar los datos recibidos
+        $validatedData = $request->validate([
+            'title'       => ['required', 'string', 'max:255'],
+            'content'     => ['required', 'string'],
+            // Usamos la constante del modelo para asegurar que el tipo sea válido (info, feature, update, warning)
+            'type'        => ['required', Rule::in(Banner::getAvailableTypes())],
+            'image_url'   => ['nullable', 'url', 'max:500'],
+            'action_text' => ['nullable', 'string', 'max:50'],
+            'action_url'  => ['nullable', 'string', 'max:500'],
+            'is_active'   => ['required', 'boolean'],
+            'start_date'  => ['nullable', 'date'],
+            'end_date'    => ['nullable', 'date', 'after_or_equal:start_date'],
+        ], [
+            'type.in' => 'El tipo de anuncio seleccionado no es válido.',
+            'end_date.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+        ]);
+
+        $banner->update($validatedData);
+
+        return redirect()
+            ->route('su.ads')
+            ->with('success', '¡El anuncio se ha actualizado correctamente!');
+    }
+
+    public function delete($id) 
+    {
+        $banner = Banner::findOrFail($id);
+        $banner->delete();
+
+        return back()->with('success', 'Banner eliminado');
+    }
+
+    // ------------------------------------
+
+    public function insig() 
+    {
+        $insignias = Insignia::withCount('users') 
+                        ->latest()
+                        ->get();
+                        
+        return view('su.insignia', compact('insignias'));
+    }
+
+    public function storeinsig(Request $request)
+    {
+        // 1. Validar
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:500',
+            'icono' => 'required|string',
+            'bgicon' => 'required|string', 
+        ]);
+
+        // 2. Crear
+        Insignia::create([
+            'nombre' => $request->nombre,
+            'slug' => Str::slug($request->nombre), // Ej: "Super Lector" -> "super-lector"
+            'descripcion' => $request->descripcion,
+            'icono' => $request->icono,
+            'bgicon' => $request->bgicon,
+        ]);
+
+        // 3. Redirigir
+        return back()->with('success', 'Insignia creada correctamente');
     }
 }

@@ -14,9 +14,10 @@
         </div>
         
         <div class="flex items-center space-x-2 md:space-x-4">
-            <button class="hidden md:block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition">
+            <a href="{{ route('su.ads', ['view' => 'create']) }}" 
+               class="hidden md:block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition no-underline text-center">
                 <i class="fas fa-plus mr-1"></i> Crear Anuncio
-            </button>
+            </a>
             <button class="md:hidden bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow transition">
                 <i class="fas fa-plus"></i>
             </button>
@@ -32,7 +33,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-indigo-500 flex items-center justify-between transition-colors">
                 <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Usuarios</p>
-                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white">1,240</h3>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $totalUsers }}</h3>
                 </div>
                 <div class="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-full text-indigo-600 dark:text-indigo-400">
                     <i class="fas fa-users"></i>
@@ -52,7 +53,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-yellow-500 flex items-center justify-between transition-colors">
                 <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Anuncios Activos</p>
-                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white">8</h3>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $activeCount }}</h3>
                 </div>
                 <div class="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-full text-yellow-600 dark:text-yellow-400">
                     <i class="fas fa-bullhorn"></i>
