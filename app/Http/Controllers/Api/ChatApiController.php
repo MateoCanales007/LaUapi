@@ -36,9 +36,9 @@ class ChatApiController extends Controller
                     ->where('seen', 0)->count();
 
                 // Construir URL relativa para el avatar
-                $avatarUrl = $contact->avatar
-                    ? '/storage/users-avatar/' . $contact->avatar
-                    : '/storage/users-avatar/avatar.png';
+                $avatarUrl = $contact->imagen
+                    ? '/perfiles/' . $contact->imagen
+                    : '/img/img.jpg';
 
                 return [
                     'id' => $contact->id,
@@ -167,7 +167,7 @@ class ChatApiController extends Controller
         $user = Auth::user();
         $favoriteIds = ChFavorite::where('user_id', $user->id)->pluck('favorite_id');
         $favorites = User::whereIn('id', $favoriteIds)->get()->map(function ($fav) {
-            $avatarUrl = $fav->avatar ? '/storage/users-avatar/' . $fav->avatar : '/storage/users-avatar/avatar.png';
+            $avatarUrl = $fav->imagen ? '/perfiles/' . $fav->imagen : '/img/img.jpg';
             return [
                 'id' => $fav->id,
                 'name' => $fav->name ?? $fav->username,
