@@ -325,6 +325,8 @@ Route::middleware(['auth:super'])
         Route::post('/ads/create', [SUController::class, 'create'])->name('ads.create');
         Route::put('/ads/update/{id}', [SUController::class, 'update'])->name('ads.update');
         Route::delete('/ads/{id}', [SUController::class, 'delete'])->name('ads.delete');
+
+        Route::post('/ads/{id}/reset-views', [SUController::class, 'resetViews'])->name('ads.resetviews');
         
     });
 
