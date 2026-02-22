@@ -196,9 +196,21 @@ class SUController extends Controller
 
     public function ads()
     {
-        $banners = Banner::latest()->get();
+        $banners = Banner::with('viewedByUsers')
+                 ->latest()
+                 ->get();
         $activeCount = $banners->where('is_active', true)->count();
         return view('su.anuncio', compact('banners', 'activeCount'));
+    }
+
+    public function resetViews($id)
+    {
+        $banner = Banner::findOrFail($id);
+        
+        // El método detach() sin argumentos elimina TODAS las relaciones en la tabla pivote para este modelo
+        $banner->viewedByUsers()->detach();
+
+        return back()->with('success', 'Las visualizaciones han sido reiniciadas. El anuncio volverá a mostrarse a todos.');
     }
 
     public function create(Request $request)

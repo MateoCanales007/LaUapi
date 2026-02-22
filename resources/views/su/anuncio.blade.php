@@ -87,6 +87,15 @@
                                 </div>
                                 
                                 <div class="flex gap-1">
+                                    {{-- NUEVO BOTÓN: Ver Vistas --}}
+                                    <button type="button" 
+                                            onclick='openViewsModal(@json($banner->title), {{ $banner->id }}, @json($banner->viewedByUsers))' 
+                                            class="text-gray-400 hover:text-blue-500 p-1 transition" 
+                                            title="Ver visualizaciones">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    {{-- Botones de Editar y Eliminar que ya tenías --}}
                                     <button type="button" onclick='openEditMode(@json($banner))' class="text-gray-400 hover:text-indigo-600 p-1 transition" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -431,9 +440,173 @@
     </div>
 </div>
 
+<div id="views-modal" class="hidden fixed inset-0 z-50 relative" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    
+    <div id="views-backdrop" class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0" onclick="closeModal('views')"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center text-center sm:items-center p-4 sm:p-4">
+            
+            <div id="views-card" class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl rounded-[2rem] transition-all w-full sm:max-w-lg translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 sm:opacity-100 border border-gray-100 dark:border-gray-700">
+                
+                <div class="px-6 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white" id="modal-title">Vistas del Anuncio</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400" id="views-banner-title">Cargando...</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModal('views')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 bg-gray-50 dark:bg-gray-900/50">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Usuarios que lo vieron</span>
+                        <span id="total-views-count" class="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 px-2 py-1 rounded-md text-xs font-bold">0</span>
+                    </div>
+
+                    <div id="users-views-list" class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        <div class="text-center py-4 text-sm text-gray-500">Cargando usuarios...</div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-between items-center">
+                    
+                    {{-- Botón para abrir el segundo modal --}}
+                    <button type="button" id="btn-show-reset" onclick="openResetViewsConfirm()" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 hidden">
+                        <i class="fas fa-history"></i> Reiniciar Vistas
+                    </button>
+                    
+                    <button type="button" onclick="closeModal('views')" class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-xl hover:bg-gray-200 transition-colors text-sm ml-auto">
+                        Cerrar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Confirmar Reinicio de Vistas --}}
+<div id="reset-views-modal" class="hidden fixed inset-0 z-50 relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="reset-views-backdrop" class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center text-center sm:items-center p-4 sm:p-4">
+            <div id="reset-views-card" class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl rounded-2xl transition-all w-full sm:max-w-lg rounded-t-[2rem] sm:rounded-[1.5rem] translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 sm:opacity-100" style="touch-action: none;">
+                <div id="reset-views-drag-handle" class="flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing w-full">
+                    <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4 sm:p-8">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-history text-red-600 dark:text-red-400"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-xl font-bold leading-6 text-gray-900 dark:text-white" id="modal-title">¿Reiniciar contador de vistas?</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Todos los registros se borrarán y el anuncio volverá a mostrarse como "nuevo" para todos los usuarios. Esta acción no se puede deshacer.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 sm:flex sm:flex-row-reverse gap-2 sm:px-8">
+                    <form id="reset-views-form" action="" method="POST" class="w-full sm:w-auto">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent bg-red-600 text-white px-4 py-3 text-base font-bold hover:bg-red-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-transform active:scale-95">
+                            Sí, Reiniciar
+                        </button>
+                    </form>
+                    <button type="button" onclick="closeModal('reset-views')" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm sm:mr-auto">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ==========================================
      SCRIPTS
      ========================================== --}}
+
+<script>
+    // Variable global para la URL base de reseteo 
+    const resetViewsBaseUrl = "{{ route('su.ads.resetviews', '000') }}";
+
+    function openViewsModal(title, bannerId, users) {
+        document.getElementById('views-banner-title').textContent = title;
+        document.getElementById('total-views-count').textContent = users.length;
+
+        // === SOLUCIÓN: Asignar la ruta directamente usando el ID ===
+        const resetForm = document.getElementById('reset-views-form');
+        if(resetForm) {
+            // Construimos la URL exacta de tu proyecto inyectando el bannerId
+            resetForm.action = `/us/su/lau/ads/${bannerId}/reset-views`;
+        }
+
+        const listContainer = document.getElementById('users-views-list');
+        listContainer.innerHTML = ''; 
+
+        if (users.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center py-6 text-gray-400 text-sm border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                    <i class="fas fa-eye-slash text-2xl mb-2 opacity-50 block"></i>
+                    Nadie ha visto este anuncio aún.
+                </div>`;
+            
+            // Ocultar botón de reinicio si no hay vistas
+            document.getElementById('btn-show-reset').classList.add('hidden');
+        } else {
+            // Mostrar botón de reinicio
+            document.getElementById('btn-show-reset').classList.remove('hidden');
+
+            users.forEach(user => {
+                const userHtml = `
+                    <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 rounded-full bg-gray-200 overflow-hidden">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="h-full w-full object-cover">
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight">${user.name}</p>
+                                <p class="text-[10px] text-gray-500">${user.email}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-gray-400 block">Visto el:</span>
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
+                                ${new Date(user.pivot.viewed_at).toLocaleDateString()}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += userHtml;
+            });
+        }
+
+        // Usar la función general para aprovechar la animación
+        openModal('views');
+    }
+
+    // NUEVA FUNCIÓN PARA ABRIR EL MODAL DE CONFIRMACIÓN
+    function openResetViewsConfirm() {
+        // 1. Cerramos el modal de la lista
+        closeModal('views');
+        
+        // 2. Esperamos un instante a que termine la animación de cierre y abrimos el de confirmación
+        setTimeout(() => {
+            openModal('reset-views');
+        }, 300); 
+    }
+</script>
+
 <script>
     // Referencias a inputs
     const inputTitle = document.getElementById('inputTitle');
@@ -661,6 +834,7 @@
     enableSwipeDown('modalCard', 'global-drag-handle', closeGlobalBanner);
     enableSwipeDown('unsaved-card', 'unsaved-drag-handle', () => closeModal('unsaved'));
     enableSwipeDown('delete-card', 'delete-drag-handle', () => closeModal('delete'));
+    enableSwipeDown('reset-views-card', 'reset-views-drag-handle', () => closeModal('reset-views'));
 
     // --- NAVEGACIÓN Y FORMULARIO ---
     function toggleView(viewName) {
