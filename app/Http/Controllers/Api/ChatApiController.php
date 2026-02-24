@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\ChMessage;
 use App\Models\ChFavorite;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Chatify\Facades\ChatifyMessenger as Chatify;
 use Pusher\Pusher;
@@ -35,10 +34,10 @@ class ChatApiController extends Controller
                     ->where('to_id', $user->id)
                     ->where('seen', 0)->count();
 
-                // Construir URL relativa para el avatar
+                // Construir URL completa para el avatar usando la estructura real de la app
                 $avatarUrl = $contact->imagen
-                    ? '/perfiles/' . $contact->imagen
-                    : '/img/img.jpg';
+                    ? url('perfiles/' . $contact->imagen)
+                    : url('img/img.jpg');
 
                 return [
                     'id' => $contact->id,
@@ -167,7 +166,7 @@ class ChatApiController extends Controller
         $user = Auth::user();
         $favoriteIds = ChFavorite::where('user_id', $user->id)->pluck('favorite_id');
         $favorites = User::whereIn('id', $favoriteIds)->get()->map(function ($fav) {
-            $avatarUrl = $fav->imagen ? '/perfiles/' . $fav->imagen : '/img/img.jpg';
+            $avatarUrl = $fav->imagen ? url('perfiles/' . $fav->imagen) : url('img/img.jpg');
             return [
                 'id' => $fav->id,
                 'name' => $fav->name ?? $fav->username,
