@@ -28,9 +28,9 @@ use App\Http\Controllers\ColaboradoresController;
  * Página principal de la aplicación
  * Muestra el feed principal con posts de usuarios
  */
-Route::get('/', HomeController::class)->name('home');
-
-// ============================================================================
+Route::get('/', function () {
+    return redirect()->route('su.us.laulogin');
+})->name('home');// ============================================================================
 // SISTEMA DE AUTENTICACIÓN
 // ============================================================================
 
@@ -38,16 +38,16 @@ Route::get('/', HomeController::class)->name('home');
  * REGISTRO DE USUARIOS
  * Formulario de registro y procesamiento de nuevos usuarios
  */
-Route::get('/register', [RegisterController::class, 'show'])->name('register');
-Route::post('/register', [RegisterController::class, 'store']);
-Route::post('/register/validate-step1', [RegisterController::class, 'validateStep1']);
+// Route::get('/register', [RegisterController::class, 'show'])->name('register');
+// Route::post('/register', [RegisterController::class, 'store']);
+// Route::post('/register/validate-step1', [RegisterController::class, 'validateStep1']);
 
 /**
  * INICIO DE SESIÓN
  * Formulario de login y autenticación de usuarios
  */
-Route::get('/login', [LoginController::class, 'index'])->name('login');
-Route::post('/login', [LoginController::class, 'store']);
+// Route::get('/login', [LoginController::class, 'index'])->name('login');
+// Route::post('/login', [LoginController::class, 'store']);
 
 /**
  * CIERRE DE SESIÓN
@@ -63,22 +63,22 @@ Route::post('/logout', [LogoutController::class, 'store'])->name('logout');
  * SOLICITUD DE RECUPERACIÓN
  * Formulario para solicitar código de recuperación por email
  */
-Route::get('/recuperar', [RecoverController::class, 'index'])->name('recuperar');
-Route::post('/recuperar', [RecoverController::class, 'enviarCodigo'])->name('recuperar.enviar');
+// Route::get('/recuperar', [RecoverController::class, 'index'])->name('recuperar');
+// Route::post('/recuperar', [RecoverController::class, 'enviarCodigo'])->name('recuperar.enviar');
 
 /**
  * VERIFICACIÓN DEL CÓDIGO
  * Formulario para ingresar el código de verificación enviado por email
  */
-Route::get('/code-verific', [RecoverController::class, 'index2'])->name('code.verific');
-Route::post('/code-verific', [RecoverController::class, 'validarCodigo'])->name('code.verification');
+// Route::get('/code-verific', [RecoverController::class, 'index2'])->name('code.verific');
+// Route::post('/code-verific', [RecoverController::class, 'validarCodigo'])->name('code.verification');
 
 /**
  * RESTABLECIMIENTO DE CONTRASEÑA
  * Formulario para establecer nueva contraseña tras verificación exitosa
  */
-Route::get('/restablecer', [RecoverController::class, 'index3'])->name('restablecer');
-Route::post('/restablecer', [RecoverController::class, 'restablecer'])->name('restablecer.verification');
+// Route::get('/restablecer', [RecoverController::class, 'index3'])->name('restablecer');
+// Route::post('/restablecer', [RecoverController::class, 'restablecer'])->name('restablecer.verification');
 
 // ============================================================================
 // GESTIÓN DE PERFILES Y USUARIOS
@@ -325,6 +325,8 @@ Route::middleware(['auth:super'])
         Route::post('/ads/create', [SUController::class, 'create'])->name('ads.create');
         Route::put('/ads/update/{id}', [SUController::class, 'update'])->name('ads.update');
         Route::delete('/ads/{id}', [SUController::class, 'delete'])->name('ads.delete');
+
+        Route::post('/ads/{id}/reset-views', [SUController::class, 'resetViews'])->name('ads.resetviews');
         
     });
 

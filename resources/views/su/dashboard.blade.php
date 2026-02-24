@@ -18,9 +18,9 @@
                class="hidden md:block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition no-underline text-center">
                 <i class="fas fa-plus mr-1"></i> Crear Anuncio
             </a>
-            <button class="md:hidden bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow transition">
+            <a href="{{ route('su.ads', ['view' => 'create']) }}" class="md:hidden bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow transition">
                 <i class="fas fa-plus"></i>
-            </button>
+            </a>
             <button class="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 ml-2">
                 <i class="fas fa-bell fa-lg"></i>
             </button>

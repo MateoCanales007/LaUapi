@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UniversidadController;
 use App\Http\Controllers\Api\FollowerController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\PomodoroController;
+use App\Http\Controllers\Api\BannerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,6 +135,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/active', [PomodoroController::class, 'active']); // Sesión activa
         Route::get('/stats', [PomodoroController::class, 'stats']); // Estadísticas de Pomodoro
     });
+
+    // Banner de la app
+    Route::get('/banners/active', [BannerController::class, 'getActive']);
+
+    Route::post('/banners/{banner}/view', [BannerController::class, 'markViewed']);
 });
 
 // Ruta de prueba de la API

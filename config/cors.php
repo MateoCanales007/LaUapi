@@ -27,6 +27,7 @@ return [
         'capacitor://localhost',
         'ionic://localhost',
         'http://localhost',
+        'http://192.168.1.3:8100',
         'http://192.168.1.3',
         '*' // Solo para desarrollo, en producción especifica las IPs exactas
     ],
