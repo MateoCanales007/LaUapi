@@ -166,7 +166,7 @@ class ChatApiController extends Controller
         $user = Auth::user();
         $favoriteIds = ChFavorite::where('user_id', $user->id)->pluck('favorite_id');
         $favorites = User::whereIn('id', $favoriteIds)->get()->map(function ($fav) {
-            $avatarUrl = $fav->imagen ? url('perfiles/' . $fav->imagen) : url('img/img.jpg');
+            $avatarUrl = $fav->imagen ? url('perfiles/' . $fav->imagen) : null;
             return [
                 'id' => $fav->id,
                 'name' => $fav->name ?? $fav->username,
