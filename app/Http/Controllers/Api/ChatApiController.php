@@ -37,13 +37,13 @@ class ChatApiController extends Controller
                 // Construir URL completa para el avatar usando la estructura real de la app
                 $avatarUrl = $contact->imagen
                     ? url('perfiles/' . $contact->imagen)
-                    : url('img/img.jpg');
+                    : null;
 
                 return [
                     'id' => $contact->id,
                     'name' => $contact->name ?? $contact->username,
                     'username' => $contact->username, // Para redirección
-                    'avatar' => $avatarUrl, // Ruta relativa
+                    'imagen_url' => $avatarUrl,
                     'last_message' => $lastMessage ? ($lastMessage->attachment ? '📎 Archivo' : $lastMessage->body) : null,
                     'last_message_time' => $lastMessage ? $lastMessage->created_at->diffForHumans() : null,
                     'last_message_date' => $lastMessage ? $lastMessage->created_at : null,
@@ -170,7 +170,7 @@ class ChatApiController extends Controller
             return [
                 'id' => $fav->id,
                 'name' => $fav->name ?? $fav->username,
-                'avatar' => $avatarUrl,
+                'imagen_url' => $avatarUrl
             ];
         });
         return response()->json($favorites);
