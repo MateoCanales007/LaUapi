@@ -91,7 +91,6 @@ class ChatApiController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            // Guardar en disco 'public' -> storage/app/public/attachments
             $file->storeAs('attachments', $fileName, 'public');
 
             $attachment = json_encode([
@@ -124,10 +123,11 @@ class ChatApiController extends Controller
             'seen' => 0
         ];
 
-        // Agregar attachment_url al mensaje para la respuesta
         if ($attachment) {
             $att = json_decode($attachment);
-            $message->attachment_url = '/storage/attachments/' . $att->new_name;
+            $attachmentUrl = '/storage/attachments/' . $att->new_name;
+            $message->attachment_url = $attachmentUrl;
+            $pusherData['attachment_url'] = $attachmentUrl;
         }
 
         Chatify::push('private-chatify.' . $request->id, 'messaging', $pusherData);
