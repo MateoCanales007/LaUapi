@@ -70,11 +70,17 @@ class AuthController extends Controller
     /**
      * Login/Registro con Redes Sociales (Google/Microsoft)
      */
+
     public function socialLogin(Request $request)
     {
+        // 1. Agregamos los campos del formulario como opcionales
         $request->validate([
             'provider' => 'required|in:google,microsoft',
-            'token' => 'required|string'
+            'token' => 'required|string',
+            'username' => 'nullable|string|max:15|unique:users,username',
+            'name' => 'nullable|string|max:255',
+            'universidad_id' => 'nullable|integer',
+            'carrera_id' => 'nullable|integer',
         ]);
 
         $provider = $request->provider;
@@ -82,75 +88,48 @@ class AuthController extends Controller
         $socialUser = null;
 
         try {
-            // 1. VALIDAR EL TOKEN CON EL PROVEEDOR
+            // --- LA MISMA LÓGICA DE VALIDACIÓN DE GOOGLE/MICROSOFT AQUÍ ---
             if ($provider === 'google') {
                 $response = Http::withToken($token)->get('https://www.googleapis.com/oauth2/v3/userinfo');
-
-                if ($response->failed()) {
-                    return response()->json(['success' => false, 'message' => 'Token de Google inválido'], 401);
-                }
-
+                if ($response->failed()) return response()->json(['success' => false, 'message' => 'Token de Google inválido'], 401);
                 $data = $response->json();
-                $socialUser = (object)[
-                    'email' => $data['email'],
-                    'name' => $data['name'],
-                    'avatar' => $data['picture'] ?? null
-                ];
+                $socialUser = (object)['email' => $data['email'], 'name' => $data['name'], 'avatar' => $data['picture'] ?? null];
             } elseif ($provider === 'microsoft') {
                 $response = Http::withToken($token)->get('https://graph.microsoft.com/v1.0/me');
-
-                if ($response->failed()) {
-                    // --- CAMBIO PARA VER EL ERROR REAL ---
-                    return response()->json([
-                        'success' => false,
-                        // Esto imprimirá el error exacto que da Microsoft (ej: "Invalid Audience", "Expired", etc)
-                        'message' => 'Error Microsoft: ' . $response->body()
-                    ], 401);
-                }
-
+                if ($response->failed()) return response()->json(['success' => false, 'message' => 'Error Microsoft: ' . $response->body()], 401);
                 $data = $response->json();
-                $socialUser = (object)[
-                    'email' => $data['mail'] ?? $data['userPrincipalName'], // Microsoft a veces usa uno u otro
-                    'name' => $data['displayName'],
-                    'avatar' => null // Obtener avatar de Microsoft requiere otra llamada, lo dejamos null por ahora
-                ];
+                $socialUser = (object)['email' => $data['mail'] ?? $data['userPrincipalName'], 'name' => $data['displayName'], 'avatar' => null];
             }
 
-            // 2. BUSCAR O CREAR USUARIO
+            // 2. BUSCAR AL USUARIO
             $user = User::where('email', $socialUser->email)->first();
 
             if (!$user) {
-                // --- REGISTRO AUTOMÁTICO ---
-
-                // Generar un username único basado en el nombre
-                $baseUsername = Str::slug($socialUser->name);
-                $username = $baseUsername . rand(100, 999);
-                while (User::where('username', $username)->exists()) {
-                    $username = $baseUsername . rand(1000, 9999);
+                // SI ES NUEVO Y NO MANDÓ LOS DATOS EXTRA -> Detenemos y pedimos registro
+                if (!$request->filled('username')) {
+                    return response()->json([
+                        'success' => true,
+                        'requires_registration' => true, // <-- BANDERA CLAVE
+                        'data' => [
+                            'name' => $socialUser->name,
+                            'email' => $socialUser->email
+                        ],
+                        'message' => 'Faltan datos para completar el registro.'
+                    ]);
                 }
 
-                /* * NOTA IMPORTANTE: 
-                 * Tu base de datos requiere universidad_id y carrera_id.
-                 * Como Google no nos da eso, tenemos dos opciones:
-                 * 1. Dejarlo null (si tu BD lo permite)
-                 * 2. Asignar un valor por defecto (ej: ID 1)
-                 * * Aquí intentaremos crearlo. Si tu BD no permite nulos en universidad_id,
-                 * esto fallará y tendrás que hacer esos campos 'nullable' en una migración.
-                 */
-
+                // SI ES NUEVO Y SÍ MANDÓ LOS DATOS EXTRA (Viene de dar clic en "Confirmar Datos") -> Lo creamos
                 $user = User::create([
-                    'name' => $socialUser->name,
+                    'name' => $request->name ?? $socialUser->name, // Tomamos el que haya editado o el de Google
                     'email' => $socialUser->email,
-                    'username' => $username,
-                    'password' => Hash::make(Str::random(24)), // Contraseña aleatoria segura
-                    'universidad_id' => 1, // SE PONE 1 PARA EJEMPLO, porque los campos son obligatorios
-                    'carrera_id' => 1,
-                    // Si puedes descargar la imagen y guardarla:
-                    // 'imagen' => ... (lógica compleja de imagen omitida para simplificar)
+                    'username' => $request->username,
+                    'password' => Hash::make(Str::random(24)),
+                    'universidad_id' => $request->universidad_id,
+                    'carrera_id' => $request->carrera_id,
                 ]);
             }
 
-            // 3. GENERAR TOKEN DE SESIÓN (LOGIN)
+            // 3. GENERAR TOKEN DE SESIÓN (LOGIN O REGISTRO FINALIZADO)
             $token = $user->createToken('mobile-app')->plainTextToken;
 
             return response()->json([
@@ -161,20 +140,17 @@ class AuthController extends Controller
                         'name' => $user->name,
                         'username' => $user->username,
                         'email' => $user->email,
-                        'imagen_url' => $user->imagen_url, // Usando el accessor del modelo
+                        'imagen_url' => $user->imagen_url,
                         'universidad_id' => $user->universidad_id,
                         'carrera_id' => $user->carrera_id
                     ],
                     'token' => $token,
-                    'is_new_user' => $user->wasRecentlyCreated // Bandera útil para el frontend
+                    'is_new_user' => $user->wasRecentlyCreated
                 ],
-                'message' => 'Login con ' . ucfirst($provider) . ' exitoso'
+                'message' => 'Login exitoso'
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error en el servidor: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()], 500);
         }
     }
 
