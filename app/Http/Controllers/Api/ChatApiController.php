@@ -124,10 +124,10 @@ class ChatApiController extends Controller
             'seen' => 0
         ];
 
+        // Agregar attachment_url al mensaje para la respuesta
         if ($attachment) {
             $att = json_decode($attachment);
-            // Enviar ruta relativa
-            $pusherData['attachment_url'] = '/storage/attachments/' . $att->new_name;
+            $message->attachment_url = '/storage/attachments/' . $att->new_name;
         }
 
         Chatify::push('private-chatify.' . $request->id, 'messaging', $pusherData);
