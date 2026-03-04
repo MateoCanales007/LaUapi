@@ -38,6 +38,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role',        // aspirante, estudiante, egresado
         'imagen',      // Asegúrate de que este campo esté aquí
         'gender',
         'profession',

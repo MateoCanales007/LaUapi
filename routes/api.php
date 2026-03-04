@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\BannerController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/social-login', [AuthController::class, 'socialLogin']);
+Route::post('/auth/check-username', [AuthController::class, 'checkUsername']);
+Route::post('/auth/check-email', [AuthController::class, 'checkEmail']);
 
 // Universidades y Carreras (públicas para el formulario de registro)
 Route::get('/universidades', [UniversidadController::class, 'index']);

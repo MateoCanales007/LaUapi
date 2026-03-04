@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -158,67 +159,24 @@ class AuthController extends Controller
      * Método de registro para nuevos usuarios de la API
      * Crea un nuevo usuario y devuelve un token para acceso inmediato
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            // Primera validación: campos básicos
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'username' => 'required|string|max:15|unique:users',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8',
-                'universidad_id' => 'required|exists:universidades,id',
-                'carrera_id' => 'required|exists:carreras,id',
-            ]);
+            // Las validaciones ya se hicieron en RegisterRequest (incluyendo las condicionales según el rol)
+            $validated = $request->validated();
 
-            // Obtener la universidad seleccionada
-            $universidad = \App\Models\Universidad::find($request->universidad_id);
-
-            // Validar que la universidad tenga un dominio configurado
-            if (!$universidad->dominio) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La universidad seleccionada no tiene un dominio de correo configurado',
-                    'errors' => [
-                        'universidad_id' => ['Esta universidad no tiene configurado un dominio de correo institucional']
-                    ]
-                ], 422);
-            }
-
-            // Validar que el email pertenezca al dominio de la universidad
-            $emailDomain = substr(strrchr($request->email, "@"), 1);
-            if ($emailDomain !== $universidad->dominio) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El correo debe pertenecer al dominio de la universidad seleccionada',
-                    'errors' => [
-                        'email' => ["El correo debe tener el dominio @{$universidad->dominio}"]
-                    ]
-                ], 422);
-            }
-
-            // Verificar que la carrera pertenezca a la universidad seleccionada
-            if (!$universidad->carreras()->where('carrera_id', $request->carrera_id)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La carrera seleccionada no pertenece a la universidad elegida',
-                    'errors' => [
-                        'carrera_id' => ['La carrera seleccionada no está disponible en esta universidad']
-                    ]
-                ], 422);
-            }
-
-            // Creo el nuevo usuario con la contraseña hasheada por seguridad
+            // Crear usuario con el rol
             $user = User::create([
-                'name' => $request->name,
-                'username' => $request->username,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'universidad_id' => $request->universidad_id,
-                'carrera_id' => $request->carrera_id,
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'], // aspirante, estudiante, egresado
+                'universidad_id' => $validated['universidad_id'] ?? null,
+                'carrera_id' => $validated['carrera_id'] ?? null,
             ]);
 
-            // Cargo las relaciones de universidad y carrera para incluirlas en la respuesta
+            // Cargo las relaciones de universidad y carrera si existen
             $user->load(['universidad', 'carrera']);
 
             // Genero un token inmediatamente para que pueda usar la app sin hacer login adicional
@@ -395,5 +353,25 @@ class AuthController extends Controller
                 'errors' => $e->getMessage()
             ], 422);
         }
+    }
+
+    /**
+     * Verificar disponibilidad de username
+     * Endpoint público para validar username en tiempo real durante el registro
+     */
+    public function checkUsername(Request $request)
+    {
+        $exists = User::where('username', $request->username)->exists();
+        return response()->json(['available' => !$exists]);
+    }
+
+    /**
+     * Verificar disponibilidad de email
+     * Endpoint público para validar email en tiempo real durante el registro
+     */
+    public function checkEmail(Request $request)
+    {
+        $exists = User::where('email', $request->email)->exists();
+        return response()->json(['available' => !$exists]);
     }
 }
