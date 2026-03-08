@@ -120,6 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat/checkFavorite', [App\Http\Controllers\Api\ChatApiController::class, 'checkFavorite']);
     Route::post('/chat/shared', [App\Http\Controllers\Api\ChatApiController::class, 'getSharedPhotos']);
     Route::post('/chat/makeSeen', [App\Http\Controllers\Api\ChatApiController::class, 'makeSeen']);
+    Route::get('/chat/unread-count', [App\Http\Controllers\Api\ChatApiController::class, 'unreadCount']);
 
     // ========== TODO & POMODORO ROUTES ==========
 

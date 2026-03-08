@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Chatify\Facades\ChatifyMessenger as Chatify;
 use Pusher\Pusher;
+use App\Http\Controllers\Api\NotificationController;
 
 class ChatApiController extends Controller
 {
@@ -132,6 +133,21 @@ class ChatApiController extends Controller
 
         Chatify::push('private-chatify.' . $request->id, 'messaging', $pusherData);
 
+        // Enviar notificación push al destinatario
+        $messageBody = $message->body ?? '📎 Te envió una imagen';
+        NotificationController::sendPushNotification(
+            $request->id,
+            $user->name ?? $user->username,
+            $messageBody,
+            [
+                'type' => 'message',
+                'chat_user_id' => (string) $user->id,
+                'message_id' => (string) $message->id,
+                'sender_name' => $user->name ?? $user->username,
+                'sender_avatar' => $user->imagen ? url('perfiles/' . $user->imagen) : null,
+            ]
+        );
+
         return response()->json($message);
     }
 
@@ -235,5 +251,36 @@ class ChatApiController extends Controller
         ChMessage::where('from_id', $request->id)->where('to_id', $user->id)->where('seen', 0)->update(['seen' => 1]);
         Chatify::push('private-chatify.' . $request->id, 'client-seen', ['from_id' => $user->id, 'seen' => true]);
         return response()->json(['status' => 'seen']);
+    }
+
+    // 7. CONTADOR DE MENSAJES NO LEÍDOS
+    /**
+     * Obtener el total de mensajes no leídos de todos los chats
+     * 
+     * GET /api/chat/unread-count
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function unreadCount()
+    {
+        try {
+            $userId = Auth::id();
+
+            // Contar mensajes no leídos donde el usuario es el destinatario
+            $count = ChMessage::where('to_id', $userId)
+                ->where('seen', 0)
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al contar mensajes',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
