@@ -12,8 +12,8 @@
             <h2 class="text-xl md:text-2xl font-bold text-gray-700 dark:text-white truncate">Carreras</h2>
         </div>
         <div>
-             <button onclick="toggleModal('add-career-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium shadow transition whitespace-nowrap">
-                <i class="fas fa-plus mr-1"></i> <span class="hidden md:inline">Nueva Carrera</span><span class="md:hidden">Nueva</span>
+            <button onclick="toggleModal('create-career-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-medium shadow transition whitespace-nowrap">
+                <i class="fas fa-plus mr-1"></i> <span class="hidden md:inline">Nueva Carrera (Catálogo)</span><span class="md:hidden">Nueva</span>
             </button>
         </div>
     </header>
@@ -21,7 +21,6 @@
     <main class="flex-1 overflow-hidden flex relative bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         
         <div id="uni-panel" class="absolute inset-y-0 left-0 z-10 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-2xl xl:shadow-none transform -translate-x-full xl:translate-x-0 xl:relative transition-transform duration-300">
-            
             <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center xl:block">
                 <p class="text-xs font-bold text-gray-400 uppercase">Filtrar por Universidad</p>
                 <button onclick="toggleUniPanel()" class="text-gray-500 xl:hidden"><i class="fas fa-times"></i></button>
@@ -34,39 +33,36 @@
                 </div>
             </div>
             
-            <div class="flex-1 overflow-y-auto p-2 space-y-1">
-                <button onclick="switchTab('ues')" id="tab-btn-ues" class="uni-tab-btn w-full text-left flex items-center p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 transition-colors group">
-                    <div class="h-8 w-8 bg-red-700 rounded-md flex items-center justify-center text-white text-xs font-bold mr-3 shrink-0">UES</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">U. de El Salvador</h4>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">5 Carreras</p>
-                    </div>
-                    <i class="fas fa-chevron-right ml-auto text-xs text-indigo-400 opacity-100"></i>
-                </button>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                
+                @foreach($universidades as $uni)
+                    @php 
+                        $isActive = ($uni->id == $activeUniId); 
+                        $btnClasses = $isActive ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-transparent';
+                        $textClasses = $isActive ? 'font-bold text-gray-800 dark:text-gray-200' : 'font-semibold text-gray-700 dark:text-gray-300';
+                        $iconClasses = $isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100';
+                    @endphp
 
-                <button onclick="switchTab('uca')" id="tab-btn-uca" class="uni-tab-btn w-full text-left flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                    <div class="h-8 w-8 bg-blue-700 rounded-md flex items-center justify-center text-white text-xs font-bold mr-3 shrink-0">UCA</div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">UCA El Salvador</h4>
-                        <p class="text-xs text-gray-500">4 Carreras</p>
-                    </div>
-                    <i class="fas fa-chevron-right ml-auto text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                </button>
+                    <button onclick="switchTab('{{ $uni->id }}', '{{ $uni->nombre }}')" id="tab-btn-{{ $uni->id }}" class="uni-tab-btn w-full text-left flex items-center p-3 rounded-lg transition-colors group {{ $btnClasses }}">
+                        
+                        <div class="h-8 w-8 rounded-md flex items-center justify-center text-white text-xs font-bold mr-3 shrink-0" style="background-color: {{ $uni->color_primario ?? '#4b5563' }};">
+                            {{ substr($uni->siglas ?? $uni->nombre, 0, 3) }}
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm {{ $textClasses }} truncate w-40" id="tab-title-{{ $uni->id }}">{{ $uni->nombre }}</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $uni->carreras->count() }} Carreras</p>
+                        </div>
+                        <i class="fas fa-chevron-right ml-auto text-xs text-indigo-400 transition-opacity {{ $iconClasses }}" id="tab-icon-{{ $uni->id }}"></i>
+                    </button>
+                @endforeach
 
-                <button onclick="switchTab('udb')" id="tab-btn-udb" class="uni-tab-btn w-full text-left flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                    <div class="h-8 w-8 bg-orange-600 rounded-md flex items-center justify-center text-white text-xs font-bold mr-3 shrink-0">UDB</div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">U. Don Bosco</h4>
-                        <p class="text-xs text-gray-500">4 Carreras</p>
-                    </div>
-                    <i class="fas fa-chevron-right ml-auto text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                </button>
             </div>
         </div>
 
         <div id="uni-backdrop" onclick="toggleUniPanel()" class="absolute inset-0 bg-gray-900/50 z-[1] hidden xl:hidden transition-opacity"></div>
 
-        <div class="flex-1 overflow-y-auto w-full p-4 md:p-8">
+        <div class="flex-1 overflow-y-auto w-full p-4 md:p-8 custom-scrollbar">
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                 <div>
@@ -74,204 +70,254 @@
                         <i class="fas fa-filter mr-2 text-indigo-500"></i> Filtrar Universidad
                     </button>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white">Carreras Disponibles</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Mostrando: <span class="font-semibold text-indigo-600 dark:text-indigo-400" id="current-uni-label">U. de El Salvador</span></p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Mostrando: <span class="font-semibold text-indigo-600 dark:text-indigo-400" id="current-uni-label">{{ $universidades->where('id', $activeUniId)->first()->nombre ?? 'Seleccione una' }}</span></p>
+                </div>
+                <div>
+                    <button onclick="openAssignCareerModal()" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 md:px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition whitespace-nowrap">
+                        <i class="fas fa-link mr-1"></i> Vincular Carrera
+                    </button>
                 </div>
             </div>
 
-            <div id="grid-ues" class="grid-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 animate-fade-in">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-blue-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><i class="fas fa-laptop-code fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Ingeniería en Sistemas</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UES - Ingeniería</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">500 estudiantes</div><button class="text-gray-400 hover:text-blue-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-green-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400"><i class="fas fa-user-md fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Doctorado en Medicina</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UES - Medicina</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">2,100 estudiantes</div><button class="text-gray-400 hover:text-green-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-purple-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"><i class="fas fa-language fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Lic. en Idiomas</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UES - Humanidades</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">850 estudiantes</div><button class="text-gray-400 hover:text-purple-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-            </div>
+            @foreach($universidades as $uni)
+                <div id="grid-{{ $uni->id }}" class="grid-content {{ $uni->id == $activeUniId ? '' : 'hidden' }} grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 animate-fade-in">
+                    
+                    @forelse($uni->carreras as $carrera)
+                        @php
+                            // Una lista de colores HEX atractivos (puedes agregar o quitar los que quieras)
+                            $colores = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#0ea5e9', '#f97316', '#14b8a6', '#ec4899'];
+                            
+                            // Seleccionamos un color usando el ID de la carrera. 
+                            // Esto garantiza que se vea variado, pero no cambie al recargar la página.
+                            $colorCard = $colores[$carrera->id % count($colores)];
+                        @endphp
 
-
-            <div id="grid-uca" class="grid-content hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 animate-fade-in">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-yellow-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg text-yellow-600 dark:text-yellow-400"><i class="fas fa-chart-line fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">Lic. en Economía</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UCA - Economía</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">400 estudiantes</div><button class="text-gray-400 hover:text-yellow-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+                            
+                            <div class="absolute left-0 top-0 bottom-0 w-2" style="background-color: {{ $colorCard }};"></div>
+                            
+                            <div class="flex justify-between items-start mb-4 pl-2">
+                                <div class="p-2 rounded-lg" style="background-color: {{ $colorCard }}20; color: {{ $colorCard }};">
+                                    <i class="fas fa-graduation-cap fa-lg"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="pl-2">
+                                <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 transition-colors">{{ $carrera->nombre }}</h4>
+                                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                    <div class="text-xs text-gray-400">{{ $carrera->users_count ?? 0 }} estudiantes</div>
+                                    <button class="text-gray-400 hover:text-indigo-600 dark:hover:text-white transition-colors">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full py-10 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-folder-open fa-3x mb-3 opacity-20"></i>
+                            <p>No hay carreras registradas en esta universidad aún.</p>
+                        </div>
+                    @endforelse
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-blue-700"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-700 dark:text-blue-400"><i class="fas fa-industry fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Ingeniería Industrial</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UCA - Ingeniería</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">800 estudiantes</div><button class="text-gray-400 hover:text-blue-700 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-                 <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-teal-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-teal-50 dark:bg-teal-900/30 rounded-lg text-teal-600 dark:text-teal-400"><i class="fas fa-book-open fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Lic. en Teología</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UCA - Teología</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">80 estudiantes</div><button class="text-gray-400 hover:text-teal-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div id="grid-udb" class="grid-content hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 animate-fade-in">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-red-600"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400"><i class="fas fa-robot fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Ing. Mecatrónica</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UDB - Ingeniería</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">350 estudiantes</div><button class="text-gray-400 hover:text-red-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-sky-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-sky-50 dark:bg-sky-900/30 rounded-lg text-sky-600 dark:text-sky-400"><i class="fas fa-plane fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Téc. en Aeronáutica</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UDB - Aeronáutica</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">300 estudiantes</div><button class="text-gray-400 hover:text-sky-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-[1.5rem] shadow-sm hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-orange-500"></div>
-                    <div class="flex justify-between items-start mb-4 pl-2">
-                        <div class="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400"><i class="fas fa-palette fa-lg"></i></div>
-                    </div>
-                    <div class="pl-2">
-                        <h4 class="text-lg font-bold text-gray-800 dark:text-white leading-tight mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Lic. Diseño Gráfico</h4>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">UDB - Artes</p>
-                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center"><div class="text-xs text-gray-400">500 estudiantes</div><button class="text-gray-400 hover:text-orange-600 dark:hover:text-white"><i class="fas fa-edit"></i></button></div>
-                    </div>
-                </div>
-            </div>
+            @endforeach
 
         </div>
     </main>
+</div>
+
+<div id="create-career-modal" class="hidden fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm transition-opacity duration-300">
+    <div class="flex items-end justify-center min-h-screen py-4 px-4 items-center text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75" onclick="toggleModal('create-career-modal')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-[1.5rem] text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <form action="{{ route('su.ca.store') }}" method="POST">
+                @csrf
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                        <div class="h-8 w-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mr-3"><i class="fas fa-plus"></i></div>
+                        Crear Nueva Carrera
+                    </h3>
+                    <p class="text-sm text-gray-500 mb-4">Esta carrera se agregará al catálogo general, pero aún no estará asignada a ninguna universidad.</p>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de la Carrera</label>
+                        <input type="text" name="nombre" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm p-2 border" placeholder="Ej. Arquitectura" required>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm">Guardar</button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="toggleModal('create-career-modal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="assign-career-modal" class="hidden fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm transition-opacity duration-300">
+    <div class="flex items-end justify-center min-h-screen py-4 px-4 items-center text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75" onclick="toggleModal('assign-career-modal')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-[1.5rem] text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <form action="{{ route('su.ca.assign') }}" method="POST">
+                @csrf
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                        <div class="h-8 w-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mr-3"><i class="fas fa-link"></i></div>
+                        Vincular Carrera
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <input type="hidden" name="universidad_id" id="hidden_assign_uni_id" value="">
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Selecciona la Carrera del Catálogo</label>
+                            <select name="carrera_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm p-2 border" required>
+                                <option value="" disabled selected>Elige una carrera...</option>
+                                @foreach($todasLasCarreras as $catCarrera)
+                                    <option value="{{ $catCarrera->id }}">{{ $catCarrera->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 sm:ml-3 sm:w-auto sm:text-sm">Vincular</button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="toggleModal('assign-career-modal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <div id="add-career-modal" class="hidden fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm transition-opacity duration-300" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen py-4 px-4 items-center text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" onclick="toggleModal('add-career-modal')"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        
         <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-[1.5rem] text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Nueva Carrera</h3>
-                <form class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Universidad</label>
-                        <select class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm p-2 border">
-                            <option>Universidad de El Salvador</option>
-                            <option>UCA</option>
-                        </select>
+            
+            <form action="" method="POST">
+                @csrf
+                
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                        <div class="h-8 w-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        Nueva Carrera
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Agregando a la Universidad:</label>
+                            
+                            <input type="hidden" name="universidad_id" id="hidden_universidad_id" value="">
+                            
+                            <select id="display_universidad_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shadow-sm p-2 border cursor-not-allowed" disabled>
+                                @foreach($universidades as $uni)
+                                    <option value="{{ $uni->id }}">{{ $uni->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">Nombre de la Carrera</label>
+                            <input type="text" id="nombre_carrera_input" name="nombre" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej. Ingeniería en Sistemas" required>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de la Carrera</label>
-                        <input type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm p-2 border">
-                    </div>
-                </form>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm transition transform hover:-translate-y-0.5">
+                        Guardar
+                    </button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="toggleModal('add-career-modal')">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse">
-                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm" onclick="toggleModal('add-career-modal')">Guardar</button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="toggleModal('add-career-modal')">Cancelar</button>
-            </div>
-        </div>
     </div>
 </div>
 
-    <script>
-        function toggleModal(id) { document.getElementById(id).classList.toggle("hidden"); }
+<script>
+    let currentActiveUniId = '{{ $activeUniId }}';
+
+    function toggleModal(id) { document.getElementById(id).classList.toggle("hidden"); }
+
+    function openAssignCareerModal() {
+        // Asignamos el ID de la universidad activa al input oculto
+        document.getElementById('hidden_assign_uni_id').value = currentActiveUniId;
         
-        // --- LOGICA DE CAMBIO DE PESTAÑAS (SWITCH TAB) ---
-        // Esta función "enciende" el div correspondiente y apaga los otros
-        function switchTab(uniId) {
-            // 1. Ocultar todos los grids
-            document.querySelectorAll('.grid-content').forEach(el => el.classList.add('hidden'));
+        // Abrimos el modal de asignación
+        toggleModal('assign-career-modal');
+    }
+    
+    // --- LÓGICA DE CAMBIO DE PESTAÑAS Y URL ---
+    function switchTab(uniId, uniName) {
+        // 1. Ocultar todos los grids
+        currentActiveUniId = uniId; 
+
+        // 2. Ocultar todos los grids
+        document.querySelectorAll('.grid-content').forEach(el => el.classList.add('hidden'));
+        
+        // 3. Mostrar el seleccionado
+        const selectedGrid = document.getElementById('grid-' + uniId);
+        if(selectedGrid) selectedGrid.classList.remove('hidden');
+
+        // 3. Actualizar etiqueta de "Mostrando:"
+        document.getElementById('current-uni-label').textContent = uniName;
+
+        // 4. Resetear estilos de todos los botones del sidebar
+        document.querySelectorAll('.uni-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-200', 'dark:border-indigo-800');
+            btn.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'border-transparent');
             
-            // 2. Mostrar el seleccionado
-            const selectedGrid = document.getElementById('grid-' + uniId);
-            if(selectedGrid) selectedGrid.classList.remove('hidden');
+            // Textos e iconos
+            const h4 = btn.querySelector('h4');
+            if(h4) { h4.classList.remove('font-bold', 'text-gray-800', 'dark:text-gray-200'); h4.classList.add('font-semibold', 'text-gray-700', 'dark:text-gray-300'); }
+            
+            const icon = btn.querySelector('i.fa-chevron-right');
+            if(icon) { icon.classList.remove('opacity-100'); icon.classList.add('opacity-0', 'group-hover:opacity-100'); }
+        });
 
-            // 3. Actualizar título
-            const labelMap = { 'ues': 'U. de El Salvador', 'uca': 'UCA El Salvador', 'udb': 'U. Don Bosco' };
-            document.getElementById('current-uni-label').textContent = labelMap[uniId];
-
-            // 4. Actualizar botones del sidebar (Estilos Activo/Inactivo)
-            document.querySelectorAll('.uni-tab-btn').forEach(btn => {
-                // Quitar estilos activos
-                btn.classList.remove('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-200', 'dark:border-indigo-800');
-                btn.querySelector('h4').classList.remove('font-bold', 'text-gray-800');
-                btn.querySelector('i.fa-chevron-right').classList.remove('opacity-100');
-                btn.querySelector('i.fa-chevron-right').classList.add('opacity-0', 'group-hover:opacity-100');
-            });
-
-            // Poner estilos al activo
-            const activeBtn = document.getElementById('tab-btn-' + uniId);
-            if(activeBtn) {
-                activeBtn.classList.add('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-200', 'dark:border-indigo-800');
-                activeBtn.querySelector('h4').classList.add('font-bold', 'text-gray-800');
-                activeBtn.querySelector('i.fa-chevron-right').classList.add('opacity-100');
-                activeBtn.querySelector('i.fa-chevron-right').classList.remove('opacity-0', 'group-hover:opacity-100');
-            }
-
-            // En movil, cerrar panel al seleccionar
-            if(window.innerWidth < 1280) toggleUniPanel();
+        // 5. Aplicar estilos de "Activo" al botón seleccionado
+        const activeBtn = document.getElementById('tab-btn-' + uniId);
+        if(activeBtn) {
+            activeBtn.classList.remove('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'border-transparent');
+            activeBtn.classList.add('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-200', 'dark:border-indigo-800');
+            
+            const h4Active = activeBtn.querySelector('h4');
+            if(h4Active) { h4Active.classList.remove('font-semibold', 'text-gray-700', 'dark:text-gray-300'); h4Active.classList.add('font-bold', 'text-gray-800', 'dark:text-gray-200'); }
+            
+            const iconActive = activeBtn.querySelector('i.fa-chevron-right');
+            if(iconActive) { iconActive.classList.remove('opacity-0', 'group-hover:opacity-100'); iconActive.classList.add('opacity-100'); }
         }
 
-        function toggleUniPanel() {
-            const panel = document.getElementById('uni-panel');
-            const backdrop = document.getElementById('uni-backdrop');
-            
-            if (panel.classList.contains('-translate-x-full')) {
-                panel.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
-            } else {
-                panel.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-            }
+        // 6. ACTUALIZAR URL SIN RECARGAR PÁGINA
+        if (history.pushState) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('uni_id', uniId);
+            window.history.pushState({path: newUrl.href}, '', newUrl.href);
         }
-    </script>
+
+        // 7. En móvil, cerrar panel al seleccionar
+        if(window.innerWidth < 1280) toggleUniPanel();
+    }
+
+    function toggleUniPanel() {
+        const panel = document.getElementById('uni-panel');
+        const backdrop = document.getElementById('uni-backdrop');
+        
+        if (panel.classList.contains('-translate-x-full')) {
+            panel.classList.remove('-translate-x-full');
+            backdrop.classList.remove('hidden');
+        } else {
+            panel.classList.add('-translate-x-full');
+            backdrop.classList.add('hidden');
+        }
+    }
+</script>
 
 @endsection

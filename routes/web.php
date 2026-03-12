@@ -305,8 +305,17 @@ Route::middleware(['auth:super'])
         
         // Vistas Generales
         Route::get('/dashboard', [SUController::class, 'dashboard'])->name('dash');
+
         Route::get('/universidades', [SUController::class, 'universidad'])->name('uni');
+        Route::post('/universidades', [SUController::class, 'storeuni'])->name('uni.store');
+
         Route::get('/carreras', [SUController::class, 'carrera'])->name('uni.ca');
+        // Ruta para crear la carrera en el catálogo (Botón Superior)
+        Route::post('/carreras/crear', [SUController::class, 'storeCarrera'])->name('ca.store');
+
+        // Ruta para vincular la carrera a la universidad (Botón Interno)
+        Route::post('/carreras/vincular', [SUController::class, 'assignCarrera'])->name('ca.assign');
+
 
         // Gestión de Usuarios SU
         Route::get('/usuarios', [SUController::class, 'userperfil'])->name('usuarios');
