@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\BannerController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/social-login', [AuthController::class, 'socialLogin']);
+Route::post('/auth/check-username', [AuthController::class, 'checkUsername']);
+Route::post('/auth/check-email', [AuthController::class, 'checkEmail']);
 
 // Universidades y Carreras (públicas para el formulario de registro)
 Route::get('/universidades', [UniversidadController::class, 'index']);
@@ -106,6 +108,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // Push Notifications - Registro de tokens de dispositivo
     Route::post('/notifications/register-device', [NotificationController::class, 'registerDevice']); // Registrar token FCM
     Route::post('/notifications/unregister-device', [NotificationController::class, 'unregisterDevice']); // Desregistrar token FCM
+
+    // ========== CHAT ROUTES ==========
+    Route::get('/chat/contacts', [App\Http\Controllers\Api\ChatApiController::class, 'getContactsJSON']);
+    Route::get('/chat/favorites', [App\Http\Controllers\Api\ChatApiController::class, 'getFavoritesJSON']);
+    Route::post('/chat/messages', [App\Http\Controllers\Api\ChatApiController::class, 'fetchMessagesJSON']);
+    Route::post('/chat/send', [App\Http\Controllers\Api\ChatApiController::class, 'sendMessageJSON']);
+    Route::post('/chat/typing', [App\Http\Controllers\Api\ChatApiController::class, 'typing']);
+    Route::post('/chat/auth', [App\Http\Controllers\Api\ChatApiController::class, 'pusherAuth']);
+    Route::post('/chat/favorite', [App\Http\Controllers\Api\ChatApiController::class, 'toggleFavorite']);
+    Route::post('/chat/checkFavorite', [App\Http\Controllers\Api\ChatApiController::class, 'checkFavorite']);
+    Route::post('/chat/shared', [App\Http\Controllers\Api\ChatApiController::class, 'getSharedPhotos']);
+    Route::post('/chat/makeSeen', [App\Http\Controllers\Api\ChatApiController::class, 'makeSeen']);
+    Route::get('/chat/unread-count', [App\Http\Controllers\Api\ChatApiController::class, 'unreadCount']);
 
     // ========== TODO & POMODORO ROUTES ==========
 
