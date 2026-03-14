@@ -138,10 +138,11 @@ class SUController extends Controller
     {
         // Traemos todas las universidades con sus carreras
         $universidades = Universidad::with(['carreras' => function ($query) {
-        $query->withCount('users');}])->get();
+            $query->withCount('users');
+        }])->get();
 
-        $todasLasCarreras = Carrera::orderBy('nombre')->get(); 
-        
+        $todasLasCarreras = Carrera::orderBy('nombre')->get();
+
         // Obtenemos el ID de la URL (si existe) para marcarlo como activo por defecto
         $activeUniId = $request->query('uni_id', $universidades->first()->id ?? null);
 
@@ -187,7 +188,7 @@ class SUController extends Controller
         // 4. Redirigimos a la vista de carreras PERO le pasamos el ID de la universidad
         // Esto activará nuestro Javascript y dejará abierta la pestaña correcta.
         return redirect()->route('su.uni.ca', ['uni_id' => $universidad->id])
-                         ->with('success', 'Carrera vinculada exitosamente a ' . ($universidad->siglas ?? $universidad->nombre));
+            ->with('success', 'Carrera vinculada exitosamente a ' . ($universidad->siglas ?? $universidad->nombre));
     }
 
     // --- NUEVAS FUNCIONES DE USUARIOS ---
@@ -458,7 +459,6 @@ class SUController extends Controller
         // 3. Redirigir
         return back()->with('success', 'Insignia creada correctamente');
     }
-}
 
     public function destroy(Request $request, $id)
     {

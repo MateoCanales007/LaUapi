@@ -107,7 +107,7 @@
                             </button> -->
                             <div class="relative inline-block text-left">
                                 
-                                <button onclick="toggleDropdown('dropdown-{{ $user->id }}')" class="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg shadow-sm transition focus:outline-none">
+                                <button onclick="toggleDropdown('dropdown-{{ $user->id }}')" class="px-3 py-2 text-gray-400 transition bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
 
@@ -115,14 +115,14 @@
                                     <div class="py-1" role="menu" aria-orientation="vertical">
                                         
                                         <button class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-yellow-600 dark:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors font-medium" role="menuitem">
-                                            <i class="fas fa-user-slash mr-3 text-center w-4"></i>
+                                            <i class="w-4 mr-3 text-center fas fa-user-slash"></i>
                                             Suspender cuenta
                                         </button>
                                         
-                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                        <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
 
                                         <button onclick="confirmDelete('{{ route('su.user.destroy', $user->id) }}')" class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors font-bold" role="menuitem">
-                                            <i class="fas fa-trash-alt mr-3 text-center w-4"></i>
+                                            <i class="w-4 mr-3 text-center fas fa-trash-alt"></i>
                                             Eliminar cuenta
                                         </button>
                                         
@@ -420,25 +420,25 @@
 </div>
 
 {{-- Modal Eliminar Usuario con Verificación --}}
-<div id="delete-modal" class="hidden fixed inset-0 z-50 relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div id="delete-backdrop" class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0"></div>
+<div id="delete-modal" class="fixed relative inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="delete-backdrop" class="fixed inset-0 transition-opacity opacity-0 bg-gray-900/75 backdrop-blur-sm"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center text-center sm:items-center p-4 sm:p-4">
+        <div class="flex items-end justify-center min-h-full p-4 text-center sm:items-center sm:p-4">
             
             <div id="delete-card" class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl rounded-2xl transition-all w-full sm:max-w-lg rounded-t-[2rem] sm:rounded-[1.5rem] translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 sm:opacity-100" style="touch-action: none;">
                 
-                <div id="delete-drag-handle" class="flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing w-full">
+                <div id="delete-drag-handle" class="flex justify-center w-full pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing">
                     <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                 </div>
                 
-                <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4 sm:p-8">
+                <div class="px-6 pt-5 pb-4 bg-white dark:bg-gray-800 sm:p-8">
                     <div class="sm:flex sm:items-start">
                         
-                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                            <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                        <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-100 rounded-full dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="text-red-600 fas fa-exclamation-triangle dark:text-red-400"></i>
                         </div>
                         
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-xl font-bold leading-6 text-gray-900 dark:text-white" id="modal-title">
                                 ¿Eliminar permanentemente?
                             </h3>
@@ -453,17 +453,17 @@
                                 @csrf
                                 @method('DELETE')
                                 
-                                <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-4">
-                                    <label for="password_verific_modify" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                <div class="p-4 mb-4 border border-gray-200 bg-gray-50 dark:bg-gray-900/50 dark:border-gray-700 rounded-xl">
+                                    <label for="password_verific_modify" class="block mb-2 text-xs font-bold tracking-wide text-gray-700 uppercase dark:text-gray-300">
                                         Confirma tu identidad
                                     </label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
                                         Ingresa tu contraseña de administrador para autorizar esta acción.
                                     </p>
                                     
                                     <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="fas fa-lock text-gray-400"></i>
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="text-gray-400 fas fa-lock"></i>
                                         </div>
                                         <input type="password" 
                                                id="password_verific_modify" 
@@ -472,19 +472,19 @@
                                                placeholder="Tu contraseña de admin" 
                                                required>
                                         
-                                        <button type="button" onclick="toggleDeletePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none">
+                                        <button type="button" onclick="toggleDeletePassword()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none">
                                             <i class="fas fa-eye" id="eye-icon-delete"></i>
                                         </button>
                                     </div>
                                     
                                     @error('password_verific_modify')
-                                        <p class="text-red-500 text-xs italic mt-2 mt-1"><i class="fas fa-info-circle mr-1"></i>{{ $message }}</p>
+                                        <p class="mt-1 mt-2 text-xs italic text-red-500"><i class="mr-1 fas fa-info-circle"></i>{{ $message }}</p>
                                     @enderror
                                 </div>
 
-                                <div class="mt-5 sm:flex sm:flex-row-reverse gap-2">
+                                <div class="gap-2 mt-5 sm:flex sm:flex-row-reverse">
                                     <button type="submit" class="w-full inline-flex justify-center items-center rounded-xl border border-transparent bg-red-600 text-white px-4 py-2.5 text-base font-bold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 sm:mt-0 sm:w-auto sm:text-sm transition-all active:scale-95 shadow-sm">
-                                        <i class="fas fa-trash-alt mr-2"></i> Eliminar Usuario
+                                        <i class="mr-2 fas fa-trash-alt"></i> Eliminar Usuario
                                     </button>
                                     <button type="button" onclick="closeModal('delete')" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm sm:mr-auto transition-colors">
                                         Cancelar
