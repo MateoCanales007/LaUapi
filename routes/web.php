@@ -305,14 +305,26 @@ Route::middleware(['auth:super'])
 
         // Vistas Generales
         Route::get('/dashboard', [SUController::class, 'dashboard'])->name('dash');
+
         Route::get('/universidades', [SUController::class, 'universidad'])->name('uni');
+        Route::post('/universidades', [SUController::class, 'storeuni'])->name('uni.store');
+        Route::put('/universidades/{id}', [SUController::class, 'updateUni'])->name('uni.update');
+
         Route::get('/carreras', [SUController::class, 'carrera'])->name('uni.ca');
+        // Ruta para crear la carrera en el catálogo (Botón Superior)
+        Route::post('/carreras/crear', [SUController::class, 'storeCarrera'])->name('ca.store');
+
+        // Ruta para vincular la carrera a la universidad (Botón Interno)
+        Route::post('/carreras/vincular', [SUController::class, 'assignCarrera'])->name('ca.assign');
+
 
         // Gestión de Usuarios SU
         Route::get('/usuarios', [SUController::class, 'userperfil'])->name('usuarios');
         Route::get('/buscar-usuarios', [SUController::class, 'buscarUsuarios'])->name('user.buscar');
         Route::get('/info/{user:username}', [SUController::class, 'info'])->name('info');
         Route::get('/reportes', [SUController::class, 'reportes'])->name('reportes');
+
+        Route::delete('/usuarios/{id}', [SUController::class, 'destroy'])->name('user.destroy');
 
         // Gestión de Insignias
         Route::get('/insignias', [SUController::class, 'insig'])->name('insig');

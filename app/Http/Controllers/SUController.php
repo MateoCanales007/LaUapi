@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\su_ad;
 use App\Models\User;
+use App\Models\Universidad;
+use App\Models\Carrera;
 use App\Models\Banner;
 use App\Models\Insignia;
 use App\Models\Reporte;
@@ -67,12 +69,125 @@ class SUController extends Controller
 
     public function universidad()
     {
-        return view('su.universidad');
+        // Consultamos todas las universidades.
+        // Usamos withCount('carreras') para que Laravel genere automáticamente la propiedad $uni->carreras_count
+        $universidades = Universidad::withCount(['carreras', 'alumnos'])->get();
+
+        // Pasamos la variable a la vista usando compact()
+        return view('su.universidad', compact('universidades'));
     }
 
-    public function carrera()
+    public function storeuni(Request $request)
     {
-        return view('su.carreras');
+        // 1. Validar los datos
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'dominio' => 'required|string|max:255|unique:universidades,dominio', // Evita dominios duplicados
+            'siglas' => 'nullable|string|max:20',
+            'color_primario' => 'nullable|string|max:7', // Ej: #FF0000
+        ], [
+            'dominio.unique' => 'Ya existe una universidad registrada con este dominio.'
+        ]);
+
+        // 2. Guardar en la base de datos
+        Universidad::create([
+            'nombre' => $request->nombre,
+            'dominio' => $request->dominio,
+            'siglas' => $request->siglas,
+            'color_primario' => $request->color_primario,
+        ]);
+
+        // 3. Redirigir con mensaje de éxito
+        return redirect()->back()->with('success', 'Universidad agregada correctamente.');
+    }
+
+    public function updateUni(Request $request, $id)
+    {
+        // 1. Buscamos la universidad en la base de datos
+        $universidad = Universidad::findOrFail($id);
+
+        // 2. Validamos los datos entrantes
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'siglas' => 'nullable|string|max:20',
+            'color_primario' => 'nullable|string|max:7',
+            /*
+             * LA REGLA DEL DOMINIO:
+             * unique:universidades,dominio,' . $id
+             * Esto significa: "Asegúrate de que el dominio sea único en la tabla universidades, 
+             * EXCEPTO si pertenece a la universidad con este $id (la que estoy editando)".
+             */
+            'dominio' => 'required|string|max:255|unique:universidades,dominio,' . $id,
+        ], [
+            'dominio.unique' => 'Ya existe otra universidad registrada con este dominio.'
+        ]);
+
+        // 3. Actualizamos los datos
+        $universidad->update([
+            'nombre' => $request->nombre,
+            'siglas' => $request->siglas,
+            'dominio' => $request->dominio,
+            'color_primario' => $request->color_primario,
+        ]);
+
+        // 4. Redirigimos con mensaje de éxito
+        return redirect()->back()->with('success', 'Universidad actualizada correctamente.');
+    }
+
+    public function carrera(Request $request)
+    {
+        // Traemos todas las universidades con sus carreras
+        $universidades = Universidad::with(['carreras' => function ($query) {
+        $query->withCount('users');}])->get();
+
+        $todasLasCarreras = Carrera::orderBy('nombre')->get(); 
+        
+        // Obtenemos el ID de la URL (si existe) para marcarlo como activo por defecto
+        $activeUniId = $request->query('uni_id', $universidades->first()->id ?? null);
+
+        return view('su.carreras', compact('universidades', 'todasLasCarreras', 'activeUniId'));
+    }
+
+    public function storeCarrera(Request $request)
+    {
+        // 1. Validamos que el nombre venga y que no exista ya en la tabla 'carreras'
+        $request->validate([
+            'nombre' => 'required|string|max:255|unique:carreras,nombre',
+        ], [
+            'nombre.unique' => 'Esta carrera ya existe en el catálogo general.'
+        ]);
+
+        // 2. Creamos la carrera
+        Carrera::create([
+            'nombre' => $request->nombre,
+        ]);
+
+        // 3. Regresamos a la misma vista
+        // Como no le pasamos 'uni_id', se quedará en la pestaña que estaba por defecto
+        return redirect()->back()->with('success', 'Carrera agregada al catálogo exitosamente.');
+    }
+
+    public function assignCarrera(Request $request)
+    {
+        // 1. Validamos que nos manden los dos IDs y que existan en la base de datos
+        $request->validate([
+            'universidad_id' => 'required|exists:universidades,id',
+            'carrera_id'     => 'required|exists:carreras,id',
+        ]);
+
+        // 2. Buscamos la universidad
+        $universidad = Universidad::findOrFail($request->universidad_id);
+
+        // 3. LA MAGIA PIVOTE: 
+        // syncWithoutDetaching enlaza la carrera con la universidad sin borrar las que ya tenía.
+        // Además, si el usuario intenta vincular una carrera que ya estaba vinculada, 
+        // Laravel lo ignora y no crea duplicados.
+        $universidad->carreras()->syncWithoutDetaching([$request->carrera_id]);
+
+        // 4. Redirigimos a la vista de carreras PERO le pasamos el ID de la universidad
+        // Esto activará nuestro Javascript y dejará abierta la pestaña correcta.
+        return redirect()->route('su.uni.ca', ['uni_id' => $universidad->id])
+                         ->with('success', 'Carrera vinculada exitosamente a ' . ($universidad->siglas ?? $universidad->nombre));
     }
 
     // --- NUEVAS FUNCIONES DE USUARIOS ---
@@ -342,5 +457,31 @@ class SUController extends Controller
 
         // 3. Redirigir
         return back()->with('success', 'Insignia creada correctamente');
+    }
+}
+
+    public function destroy(Request $request, $id)
+    {
+        // 1. Validar que el campo de contraseña venga en el formulario
+        $request->validate([
+            'password_verific_modify' => 'required|string',
+        ], [
+            'password_verific_modify.required' => 'Debes ingresar tu contraseña para confirmar.'
+        ]);
+
+        // 2. Verificar que la contraseña del Admin (quien está logueado) sea correcta
+        $admin = auth()->user(); // Obtiene el admin actual
+
+        if (!Hash::check($request->password_verific_modify, $admin->password_verific_modify)) {
+            // Si la contraseña no coincide, regresa atrás con un error
+            return back()->withErrors(['password_verific_modify' => 'La contraseña de administrador es incorrecta.']);
+        }
+
+        // 3. Si la contraseña es correcta, buscar al usuario y eliminarlo
+        $usuarioAEliminar = User::findOrFail($id);
+        $usuarioAEliminar->delete();
+
+        // 4. Redirigir con mensaje de éxito
+        return redirect()->back()->with('success', 'Usuario eliminado permanentemente.');
     }
 }

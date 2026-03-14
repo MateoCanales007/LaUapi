@@ -104,7 +104,31 @@
                             </button>
                             <button class="px-3 py-2 text-gray-400 transition bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 hover:text-red-500">
                                 <i class="fas fa-ellipsis-v"></i>
-                            </button>
+                            </button> -->
+                            <div class="relative inline-block text-left">
+                                
+                                <button onclick="toggleDropdown('dropdown-{{ $user->id }}')" class="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg shadow-sm transition focus:outline-none">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+
+                                <div id="dropdown-{{ $user->id }}" class="hidden origin-top-left md:origin-top-right absolute top-full left-0 md:left-auto md:right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-[100] transition-all duration-200 opacity-0 scale-95">
+                                    <div class="py-1" role="menu" aria-orientation="vertical">
+                                        
+                                        <button class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-yellow-600 dark:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors font-medium" role="menuitem">
+                                            <i class="fas fa-user-slash mr-3 text-center w-4"></i>
+                                            Suspender cuenta
+                                        </button>
+                                        
+                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+                                        <button onclick="confirmDelete('{{ route('su.user.destroy', $user->id) }}')" class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors font-bold" role="menuitem">
+                                            <i class="fas fa-trash-alt mr-3 text-center w-4"></i>
+                                            Eliminar cuenta
+                                        </button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -394,6 +418,281 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Eliminar Usuario con Verificación --}}
+<div id="delete-modal" class="hidden fixed inset-0 z-50 relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="delete-backdrop" class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center text-center sm:items-center p-4 sm:p-4">
+            
+            <div id="delete-card" class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl rounded-2xl transition-all w-full sm:max-w-lg rounded-t-[2rem] sm:rounded-[1.5rem] translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 sm:opacity-100" style="touch-action: none;">
+                
+                <div id="delete-drag-handle" class="flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing w-full">
+                    <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 px-6 pt-5 pb-4 sm:p-8">
+                    <div class="sm:flex sm:items-start">
+                        
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                        </div>
+                        
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-xl font-bold leading-6 text-gray-900 dark:text-white" id="modal-title">
+                                ¿Eliminar permanentemente?
+                            </h3>
+                            
+                            <div class="mt-2 mb-4">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Estás a punto de eliminar la cuenta de este usuario. Todos sus datos, publicaciones y registros serán borrados de "Lau". <strong class="text-red-600 dark:text-red-400">Esta acción es irreversible.</strong>
+                                </p>
+                            </div>
+
+                            <form id="delete-form" action="" method="POST" class="mt-4">
+                                @csrf
+                                @method('DELETE')
+                                
+                                <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-4">
+                                    <label for="password_verific_modify" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                        Confirma tu identidad
+                                    </label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                        Ingresa tu contraseña de administrador para autorizar esta acción.
+                                    </p>
+                                    
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-lock text-gray-400"></i>
+                                        </div>
+                                        <input type="password" 
+                                               id="password_verific_modify" 
+                                               name="password_verific_modify" 
+                                               class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent sm:text-sm transition-all" 
+                                               placeholder="Tu contraseña de admin" 
+                                               required>
+                                        
+                                        <button type="button" onclick="toggleDeletePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none">
+                                            <i class="fas fa-eye" id="eye-icon-delete"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    @error('password_verific_modify')
+                                        <p class="text-red-500 text-xs italic mt-2 mt-1"><i class="fas fa-info-circle mr-1"></i>{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="mt-5 sm:flex sm:flex-row-reverse gap-2">
+                                    <button type="submit" class="w-full inline-flex justify-center items-center rounded-xl border border-transparent bg-red-600 text-white px-4 py-2.5 text-base font-bold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 sm:mt-0 sm:w-auto sm:text-sm transition-all active:scale-95 shadow-sm">
+                                        <i class="fas fa-trash-alt mr-2"></i> Eliminar Usuario
+                                    </button>
+                                    <button type="button" onclick="closeModal('delete')" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm sm:mr-auto transition-colors">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. FUNCIÓN PARA ABRIR CUALQUIER MODAL (Animado)
+    function openModal(idName) {
+        const modal = document.getElementById(`${idName}-modal`);
+        const backdrop = document.getElementById(`${idName}-backdrop`);
+        const card = document.getElementById(`${idName}-card`);
+        
+        if (!modal || !backdrop || !card) return;
+        
+        // Quitamos el hidden para que exista en la pantalla
+        modal.classList.remove('hidden');
+        
+        // Un pequeñísimo retraso para que CSS procese las animaciones
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            card.classList.remove('translate-y-full', 'opacity-0', 'sm:scale-95');
+            card.classList.add('sm:scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    // 2. FUNCIÓN ESPECÍFICA PARA ELIMINAR (Prepara el formulario y abre el modal)
+    function confirmDelete(deleteUrl) {
+        // 1. Cerrar cualquier dropdown (los tres puntitos) que esté abierto
+        document.querySelectorAll('[id^="dropdown-"]').forEach(dd => {
+            dd.classList.add('hidden');
+            dd.classList.remove('opacity-100', 'scale-100');
+        });
+
+        // 2. Actualizamos la URL...
+        const form = document.getElementById('delete-form');
+        if (form) {
+            form.action = deleteUrl;
+        }
+        
+        // 3. Limpiamos la contraseña...
+        const passInput = document.getElementById('password_verific_modify');
+        if (passInput) {
+            passInput.value = '';
+        }
+
+        // 4. Abrimos el modal de eliminación
+        openModal('delete');
+    }
+
+    function toggleDeletePassword() {
+        const input = document.getElementById('password_verific_modify');
+        const icon = document.getElementById('eye-icon-delete');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // 1. LA FUNCIÓN PRINCIPAL DE SWIPE (Arrastre)
+    function enableSwipeDown(cardId, handleId, closeCallback) {
+        const card = document.getElementById(cardId);
+        const handle = document.getElementById(handleId);
+        
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        if (!handle || !card) return;
+
+        // Cuando el usuario toca la barrita
+        handle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            card.style.transition = 'none'; // Quitamos transición para que siga el dedo fluido
+        }, { passive: true });
+
+        // Cuando el usuario mueve el dedo
+        handle.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+
+            // Solo permitir arrastrar hacia abajo
+            if (diff > 0) card.style.transform = `translateY(${diff}px)`;
+        }, { passive: true });
+
+        // Cuando el usuario suelta la pantalla
+        handle.addEventListener('touchend', () => {
+            isDragging = false;
+            const diff = currentY - startY;
+            
+            card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+
+            // Si deslizó más de 100px, cerramos el modal
+            if (diff > 100) {
+                card.style.transform = `translateY(100%)`;
+                setTimeout(() => {
+                    closeCallback(); // Llamamos a la función para ocultar el modal
+                    setTimeout(() => { card.style.transform = ''; }, 50); // Reseteamos posición
+                }, 300);
+            } else {
+                // Si no deslizó lo suficiente, regresa a su lugar
+                card.style.transform = '';
+            }
+            startY = 0;
+            currentY = 0;
+        });
+    }
+
+    // 2. LA FUNCIÓN PARA OCULTAR EL MODAL
+    // (Esta es la que se ejecuta cuando el swipe termina)
+    function closeModal(idName) {
+        const modal = document.getElementById(`${idName}-modal`);
+        const backdrop = document.getElementById(`${idName}-backdrop`);
+        const card = document.getElementById(`${idName}-card`);
+        if (!modal || !backdrop || !card) return;
+        
+        backdrop.classList.add('opacity-0');
+        card.classList.add('translate-y-full', 'opacity-0', 'sm:scale-95');
+        card.classList.remove('sm:scale-100');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            card.style.transform = ''; 
+        }, 300);
+    }
+
+    // 3. ACTIVACIÓN (Vincular la función con el Modal de Eliminar)
+    // Ejecutamos esto una vez cargue la página
+    document.addEventListener("DOMContentLoaded", function() {
+        // 'delete-card' = ID de la tarjeta blanca
+        // 'delete-drag-handle' = ID de la barrita gris
+        // () => closeModal('delete') = Lo que pasa al terminar de arrastrar
+        enableSwipeDown('delete-card', 'delete-drag-handle', () => closeModal('delete'));
+    });
+</script>
+
+<script>
+    // Función para abrir/cerrar el dropdown específico
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById(id);
+        const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
+        
+        // 1. Cerrar cualquier otro dropdown que esté abierto
+        allDropdowns.forEach(dd => {
+            if (dd.id !== id && !dd.classList.contains('hidden')) {
+                closeDropdownEl(dd);
+            }
+        });
+
+        // 2. Abrir o cerrar el seleccionado
+        if (dropdown.classList.contains('hidden')) {
+            // Mostrar
+            dropdown.classList.remove('hidden');
+            // Pequeño timeout para que la transición CSS (escala y opacidad) funcione
+            setTimeout(() => {
+                dropdown.classList.remove('opacity-0', 'scale-95');
+                dropdown.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        } else {
+            // Ocultar
+            closeDropdownEl(dropdown);
+        }
+    }
+
+    // Función auxiliar para cerrar con animación
+    function closeDropdownEl(dropdown) {
+        dropdown.classList.remove('opacity-100', 'scale-100');
+        dropdown.classList.add('opacity-0', 'scale-95');
+        // Esperamos que termine la animación para ponerle 'hidden'
+        setTimeout(() => {
+            dropdown.classList.add('hidden');
+        }, 200); 
+    }
+
+    // Detectar clic fuera del dropdown para cerrarlo
+    document.addEventListener('click', (event) => {
+        const isDropdownButton = event.target.closest('button[onclick^="toggleDropdown"]');
+        const isDropdownMenu = event.target.closest('[id^="dropdown-"]');
+        
+        // Si el clic no fue en el botón ni dentro del menú, cerramos todos
+        if (!isDropdownButton && !isDropdownMenu) {
+            const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
+            allDropdowns.forEach(dd => {
+                if (!dd.classList.contains('hidden')) {
+                    closeDropdownEl(dd);
+                }
+            });
+        }
+    });
+</script>
 
 <script>
     function toggleModal(modalID) {
