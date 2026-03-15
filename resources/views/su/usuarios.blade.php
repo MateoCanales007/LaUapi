@@ -102,9 +102,6 @@
                             <button class="px-4 py-2 text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700">
                                 <i class="mr-1 fas fa-edit"></i> Editar
                             </button>
-                            <button class="px-3 py-2 text-gray-400 transition bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 hover:text-red-500">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button> -->
                             <div class="relative inline-block text-left">
                                 
                                 <button onclick="toggleDropdown('dropdown-{{ $user->id }}')" class="px-3 py-2 text-gray-400 transition bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">

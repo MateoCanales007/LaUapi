@@ -18,37 +18,74 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     /**
-     * Obtiene la lista paginada de todos los usuarios
-     * Implementé select específico para optimizar la consulta y reducir datos transferidos
-     * Perfecto para mostrar un directorio de usuarios en la app móvil
+     * Obtiene la lista paginada de usuarios con filtros de búsqueda
      */
-    public function index()
+    public function index(Request $request) // <-- IMPORTANTE: Agregar Request $request
     {
         try {
-            // Selecciono solo los campos necesarios para mejorar el rendimiento
-            // Incluyo universidad_id y carrera_id para cargar las relaciones
-            $users = User::with(['universidad', 'carrera'])
-                ->select(['id', 'name', 'username', 'imagen', 'insignia', 'universidad_id', 'carrera_id'])
-                ->paginate(20); // Pagino de 20 en 20 para no sobrecargar la app
+            // 1. Iniciamos la consulta base, igual que la tenías
+            $query = User::with(['universidad', 'carrera'])
+                ->select(['id', 'name', 'username', 'imagen', 'insignia', 'universidad_id', 'carrera_id']);
 
-            // Transformo cada usuario para agregar la URL completa de la imagen de perfil  
-            // Esto es esencial para que la app móvil pueda cargar las fotos correctamente
+            // 2. Filtro de Búsqueda (Texto en el buscador)
+            if ($request->has('search') && !empty($request->search)) {
+                $searchTerm = '%' . $request->search . '%';
+                // Buscamos por nombre o por username
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('name', 'LIKE', $searchTerm)
+                      ->orWhere('username', 'LIKE', $searchTerm);
+                });
+            }
+
+            // 3. Filtro de Universidad (Dropdown)
+            if ($request->has('universidad_id') && !empty($request->universidad_id)) {
+                $query->where('universidad_id', $request->universidad_id);
+            }
+
+            // 4. Filtro de Carrera (Dropdown)
+            if ($request->has('carrera_id') && !empty($request->carrera_id)) {
+                $query->where('carrera_id', $request->carrera_id);
+            }
+
+            // 5. Filtro de Ordenamiento
+            if ($request->has('order') && !empty($request->order)) {
+                switch ($request->order) {
+                    case 'ABC':
+                        $query->orderBy('name', 'asc');
+                        break;
+                    case 'CBA':
+                        $query->orderBy('name', 'desc');
+                        break;
+                    case 'ASC':
+                        $query->orderBy('id', 'asc');
+                        break;
+                    case 'DESC':
+                        $query->orderBy('id', 'desc');
+                        break;
+                }
+            } else {
+                // Orden por defecto: los más recientes primero
+                $query->orderBy('id', 'desc');
+            }
+
+            // 6. Finalmente, paginamos los resultados filtrados
+            // Laravel automáticamente leerá el parámetro ?page=X de la URL
+            $users = $query->paginate(20);
+
+            // 7. Transformamos la colección para la URL de la imagen (Tu código original)
             $users->getCollection()->transform(function ($user) {
-                // Solo agrego la URL si el usuario tiene imagen de perfil
-                // Uso url() para generar URLs absolutas con el dominio completo
                 if ($user->imagen) {
                     $user->imagen_url = url('perfiles/' . $user->imagen);
                 }
                 return $user;
             });
 
-            // Devuelvo la lista paginada con formato JSON estándar para la API
             return response()->json([
                 'success' => true,
                 'data' => $users
             ]);
+
         } catch (\Exception $e) {
-            // Capturo cualquier error y devuelvo respuesta estructurada para debugging
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener usuarios',
@@ -63,32 +100,32 @@ class UserController extends Controller
      * Perfecto para mostrar la pantalla de perfil de usuario en la app
      */
     public function foreignUser($usuario_username)
-{
- try {
-        // Busco por username (no por id)
-        $user = User::with(['universidad', 'carrera'])
-            ->where('username', $usuario_username)
-            ->select(['id', 'name', 'username', 'imagen', 'insignia', 'universidad_id', 'carrera_id'])
-            ->firstOrFail();
+    {
+     try {
+            // Busco por username (no por id)
+            $user = User::with(['universidad', 'carrera'])
+                ->where('username', $usuario_username)
+                ->select(['id', 'name', 'username', 'imagen', 'insignia', 'universidad_id', 'carrera_id'])
+                ->firstOrFail();
 
-        // Agrego URL completa de imagen (igual que en index y show)
-        if ($user->imagen) {
-            $user->imagen_url = url('perfiles/' . $user->imagen);
+            // Agrego URL completa de imagen (igual que en index y show)
+            if ($user->imagen) {
+                $user->imagen_url = url('perfiles/' . $user->imagen);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $user
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo obtener el usuario',
+                'error'   => $e->getMessage()
+            ], 404);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No se pudo obtener el usuario',
-            'error'   => $e->getMessage()
-        ], 404);
     }
-}
 
     public function show(User $user)
     {
