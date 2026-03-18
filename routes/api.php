@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\PomodoroController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\ReporteController;
+use App\Http\Controllers\Api\AppUpdateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,6 +49,8 @@ Route::get('/music/search', [MusicSearchController::class, 'search']);
 Route::get('/music/track', [MusicSearchController::class, 'getTrack']);
 Route::get('/music/genre', [MusicSearchController::class, 'searchByGenre']);
 Route::get('/music/popular', [MusicSearchController::class, 'getPopular']);
+
+Route::get('/check-update', [AppUpdateController::class, 'checkUpdate']);
 
 // Rutas protegidas (requieren autenticación con token Sanctum)
 Route::middleware('auth:sanctum')->group(function () {

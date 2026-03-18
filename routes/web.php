@@ -340,6 +340,12 @@ Route::middleware(['auth:super'])
         Route::delete('/ads/{id}', [SUController::class, 'delete'])->name('ads.delete');
 
         Route::post('/ads/{id}/reset-views', [SUController::class, 'resetViews'])->name('ads.resetviews');
+
+        // Gestion de actualización app
+        Route::get('/updates', [SUController::class, 'updateindex'])->name('updates.index');
+        Route::post('/updates', [SUController::class, 'storeup'])->name('updates.store');
+        Route::patch('/updates/{id}/activate', [SUController::class, 'activateup'])->name('updates.activate');
+        Route::delete('/updates/{id}', [SUController::class, 'destroyup'])->name('updates.destroy');
     });
 
 

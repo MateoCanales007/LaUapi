@@ -336,6 +336,13 @@
                     <span
                         class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ \App\Models\Reporte::where('estado', 'pendiente')->count() }}</span>
                 </a>
+
+                <a href="{{ route('su.updates.index') }}"
+                    class="flex items-center px-4 py-2 rounded-lg 
+                 @if (Route::is('su.reportes')) bg-indigo-800 text-white @else text-indigo-100 hover:bg-indigo-800 hover:text-white transition @endif
+                 ">
+                    <i class="fas fa-file-alt w-6"></i> <span>Reportes</span>
+                </a>
             </nav>
 
             <div class="px-4 pb-2">

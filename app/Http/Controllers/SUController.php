@@ -10,9 +10,11 @@ use App\Models\Carrera;
 use App\Models\Banner;
 use App\Models\Insignia;
 use App\Models\Reporte;
+use App\Models\AppUpdate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
@@ -483,5 +485,71 @@ class SUController extends Controller
 
         // 4. Redirigir con mensaje de éxito
         return redirect()->back()->with('success', 'Usuario eliminado permanentemente.');
+    }
+
+    // ✨ 1. MOSTRAR LA VISTA ✨
+    public function updateindex()
+    {
+        // Traemos todas las actualizaciones ordenadas de la más nueva a la más vieja
+        $updates = AppUpdate::orderBy('created_at', 'desc')->get();
+        
+        // Retornamos tu vista Blade (Ajusta 'su.updates.index' según tu estructura de carpetas)
+        return view('su.updates', compact('updates'));
+    }
+
+    // ✨ 2. GUARDAR (El que ya teníamos) ✨
+    public function storeup(Request $request)
+    {
+        $request->validate([
+            'version' => 'required|string|unique:app_updates',
+            'update_file' => 'required|file|mimes:zip|max:50000',
+        ]);
+
+        $path = $request->file('update_file')->storeAs(
+            'updates', 
+            'v' . $request->version . '.zip', 
+            'public'
+        );
+
+        AppUpdate::query()->update(['is_active' => false]);
+
+        AppUpdate::create([
+            'version' => $request->version,
+            'file_path' => $path,
+            'is_active' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'Actualización subida y activada con éxito.');
+    }
+
+    // ✨ 3. ACTIVAR / ROLLBACK ✨
+    // En lugar de editar, esta función cambia cuál es la versión que la app va a descargar
+    public function activateup($id)
+    {
+        $update = AppUpdate::findOrFail($id);
+
+        // 1. Desactivamos todas las versiones
+        AppUpdate::query()->update(['is_active' => false]);
+
+        // 2. Activamos solo la que el usuario seleccionó
+        $update->update(['is_active' => true]);
+
+        return redirect()->back()->with('success', 'La versión v' . $update->version . ' ha sido activada. Los usuarios ahora descargarán esta versión.');
+    }
+
+    // ✨ 4. ELIMINAR ✨
+    public function destroyup($id)
+    {
+        $update = AppUpdate::findOrFail($id);
+
+        // 1. Borramos el archivo físico (.zip) del VPS para liberar espacio
+        if (Storage::disk('public')->exists($update->file_path)) {
+            Storage::disk('public')->delete($update->file_path);
+        }
+
+        // 2. Borramos el registro de la base de datos
+        $update->delete();
+
+        return redirect()->back()->with('success', 'El archivo de la actualización fue eliminado del servidor de forma permanente.');
     }
 }
