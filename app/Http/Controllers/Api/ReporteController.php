@@ -71,6 +71,7 @@ class ReporteController extends Controller
                 'report_id' => $reporte->id,
                 'reporter_id' => $reporter->id,
                 'reporter_name' => $reporter->username,
+                'reporter_email' => $reporter->email,
                 'reported_user_id' => $reported->id,
                 'reported_name' => $reported->username,
                 'motivo' => $reporte->motivo,

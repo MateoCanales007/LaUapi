@@ -125,7 +125,7 @@ class PomodoroController extends Controller
         }
 
         // Aquí puedes agregar lógica para enviar notificaciones push
-        // $this->sendPomodoroCompletedNotification($session);
+        $this->sendPomodoroCompletedNotification($session);
 
         return response()->json([
             'success' => true,
