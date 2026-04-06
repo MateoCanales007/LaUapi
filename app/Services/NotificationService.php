@@ -23,6 +23,18 @@ class NotificationService
         }
 
         try {
+            // === NUEVA LÓGICA ANTI-SPAM ===
+            // Buscar si ya existe una notificación de Follow previa
+            $existingNotification = Notification::where('user_id', $followed->id)
+                ->where('from_user_id', $follower->id)
+                ->where('type', Notification::TYPE_FOLLOW)
+                ->first();
+
+            if ($existingNotification) {
+                $existingNotification->delete();
+            }
+            // ==============================
+
             // Crear notificación en la base de datos
             $notification = Notification::create([
                 'user_id' => $followed->id,
@@ -34,6 +46,7 @@ class NotificationService
                     'follower_image' => $follower->imagen
                 ]
             ]);
+
 
             // Enviar notificación push
             NotificationController::sendPushNotification(
@@ -65,8 +78,24 @@ class NotificationService
         }
 
         try {
+            // === NUEVA LÓGICA ANTI-SPAM ===
+            // Buscar si ya existe una notificación de Like de este usuario para este post
+            $existingNotification = Notification::where('user_id', $post->user_id)
+                ->where('from_user_id', $liker->id)
+                ->where('type', Notification::TYPE_LIKE)
+                ->where('post_id', $post->id)
+                ->first();
+
+            // Si ya existe, la eliminamos para no tener duplicados
+            // (La nueva notificación aparecerá hasta arriba en el feed del usuario)
+            if ($existingNotification) {
+                $existingNotification->delete();
+            }
+            // ==============================
+
             // Crear notificación en la base de datos
             $notification = Notification::create([
+                // ... (tu código actual se mantiene igual)
                 'user_id' => $post->user_id,
                 'from_user_id' => $liker->id,
                 'type' => Notification::TYPE_LIKE,
@@ -81,6 +110,8 @@ class NotificationService
             ]);
 
             // Enviar notificación push
+            // OPCIONAL: Podrías envolver esto en un "if (!$existingNotification)" 
+            // si NO quieres que el celular suene otra vez por un re-like.
             NotificationController::sendPushNotification(
                 $post->user_id,
                 'Nuevo like',
