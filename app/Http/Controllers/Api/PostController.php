@@ -8,6 +8,8 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -32,6 +34,9 @@ class PostController extends Controller
             $posts->getCollection()->transform(function ($post) {
                 if ($post->imagen) {
                     $post->imagen_url = url('uploads/' . $post->imagen);
+                }
+                if ($post->imagen_mini) {
+                    $post->imagen_mini_url = url('uploads/' . $post->imagen_mini);
                 }
                 if ($post->archivo) {
                     $post->archivo_url = url('files/' . $post->archivo);
@@ -203,12 +208,37 @@ class PostController extends Controller
                 $post->descripcion = $request->descripcion;
             }
 
+            // === AQUÍ ENTRA LA OPTIMIZACIÓN WEBP ===
             if ($request->hasFile('imagen')) {
-                $imagen = $request->file('imagen');
-                $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-                $imagen->move(public_path('uploads'), $nombreImagen);
-                $post->imagen = $nombreImagen;
+                $file = $request->file('imagen');
+                $nombreBase = time() . '_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                
+                // Nombres de archivos con extensión WebP
+                $nombreFull = $nombreBase . '_full.webp';
+                $nombreMini = $nombreBase . '_feed.webp';
+
+                // Iniciamos el motor gráfico
+                $manager = new ImageManager(new Driver());
+                $img = $manager->read($file);
+
+                // 1. Crear y guardar la versión FULL (1200px)
+                $imgFull = clone $img;
+                $imgFull->scaleDown(width: 1200)
+                        ->toWebp(85) // Calidad 85%
+                        ->save(public_path('uploads/' . $nombreFull));
+
+                // 2. Crear y guardar la versión MINI (600px para el feed)
+                $imgMini = clone $img;
+                $imgMini->scaleDown(width: 600)
+                        ->toWebp(70) // Calidad 70%
+                        ->save(public_path('uploads/' . $nombreMini));
+
+                // 3. Guardar SOLO los nombres en la base de datos (como lo hacías antes)
+                $post->imagen = $nombreFull;
+                $post->imagen_mini = $nombreMini; 
+                // Nota: Asegúrate de tener 'imagen_mini' en tu modelo Post
             }
+            // ===========================================
 
             if ($request->hasFile('archivo')) {
                 $file = $request->file('archivo');
@@ -262,7 +292,14 @@ class PostController extends Controller
             $post->load(['user', 'comentarios', 'likes']);
             $post->loadCount(['comentarios', 'likes']);
 
-            if ($post->imagen) $post->imagen_url = url('uploads/' . $post->imagen);
+            // Armar las URLs completas para la respuesta del API
+            if ($post->imagen) {
+                $post->imagen_url = url('uploads/' . $post->imagen);
+                // Si agregaste imagen_mini, mándala también en la respuesta
+                if ($post->imagen_mini) {
+                    $post->imagen_mini_url = url('uploads/' . $post->imagen_mini);
+                }
+            }
             if ($post->archivo) $post->archivo_url = url('files/' . $post->archivo);
             if ($post->user && $post->user->imagen) $post->user->imagen_url = url('perfiles/' . $post->user->imagen);
 
@@ -320,6 +357,9 @@ class PostController extends Controller
             // 5. Transformaciones del Post principal
             if ($post->imagen) {
                 $post->imagen_url = url('uploads/' . $post->imagen);
+            }
+            if ($post->imagen_mini) {
+                $post->imagen_mini_url = url('uploads/' . $post->imagen_mini);
             }
             if ($post->archivo) {
                 $post->archivo_url = url('files/' . $post->archivo);
